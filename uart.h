@@ -1,13 +1,12 @@
 /*
- *  uart0.h
+ *  uart.h
  * 
- * Created: 2017. 05. 23. (화) 17:06:47 KST
+ * Created: 2017년 12월  7일 목요일 01시 20분 40초 KST
  * Author : jeho park<linuxpark@gmail.com>
  */
-#ifndef _DRONE_UART0_
-#define _DRONE_UART0_
+#ifndef _UART_
+#define _UART_
 
-#include "drone.h"
 #include <avr/io.h>
 #include <stdio.h>
 
@@ -15,7 +14,7 @@
 
 extern FILE OUTPUT;
 extern FILE INPUT;
-extern void uart0_init(void);
+extern void uart_init(void);
 
 #ifdef  DEBUG_DRONE
 #define dprint(format, args...)  \
