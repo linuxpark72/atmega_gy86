@@ -114,13 +114,13 @@ Input: type is D1 or D2 (MS5611_CONV_D1 or MS5611_CONV_D2)
 
  Return:  0 means success, 1 means failure
 *************************************************************************/
-unsigned char 5611_get_ds(u_int8_t type, u_int8_t res, u_int32_t *d1, u_int32_t *d2) {
+unsigned char 5611_get_ds(u_int8_t res, u_int32_t *d1, u_int32_t *d2) {
 	unsigned char ret;
 
-	if ((ret = _5611_get_ds(type, res, d1))) 
+	if ((ret = _5611_get_ds(MS5611_CONV_D1, res, d1))) 
 		return ret;
 
-	if ((ret = _5611_get_ds(type, res, d2))) 
+	if ((ret = _5611_get_ds(MS5611_CONV_D2, res, d2))) 
 		return ret;
 
 	return 0;

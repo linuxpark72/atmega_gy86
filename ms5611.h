@@ -65,7 +65,6 @@ extern unsigned char 5611_get_coefficient(struct 5611_cc_tab *);
  @retval   0   device accessible
  @retval   1   failed to access device
  */
-extern unsigned char 5611_get_ds(u_int32_t *d1, u_int32_t *d2);
-
+extern unsigned char 5611_get_ds(u_int8_t res, u_int32_t *d1, u_int32_t *d2)
 #endif /* _MS5611_ */
 
