@@ -1,3 +1,11 @@
+/*
+ *  i2c.h
+ *
+ * Desc    : 
+ * Created : Sun Dec 10 KST 2017
+ * Author  : jeho park<linuxpark@gmail.com>
+ */
+
 #ifndef _I2CMASTER_H
 #define _I2CMASTER_H   1
 /************************************************************************* 

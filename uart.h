@@ -1,7 +1,7 @@
 /*
  *  uart.h
  * 
- * Created: 2017년 12월  7일 목요일 01시 20분 40초 KST
+ * Created: Sun Dec 10 KST 2017
  * Author : jeho park<linuxpark@gmail.com>
  */
 #ifndef _UART_

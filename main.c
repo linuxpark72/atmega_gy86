@@ -1,5 +1,6 @@
 /*
- * Created: 2017년 12월  7일 목요일 01시 18분 11초 KST
+ * main.c 
+ * Created: Sun Dec 10 KST 2017
  * Author : jeho park<linuxpark@gmail.com>
  */ 
 #include <avr/io.h>

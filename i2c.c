@@ -1,4 +1,12 @@
 /*
+ *  i2c.c 
+ *
+ * Desc    : stolen from below site
+ * Created : Sun Dec 10 KST 2017
+ * Author  : jeho park<linuxpark@gmail.com>
+ */
+
+/*
  * modified version of I2C master library
  * added a timeout variable for non blocking i2c
  */
@@ -19,7 +27,7 @@
 
 /* define CPU frequency in Mhz here if not defined in Makefile */
 #ifndef F_CPU
-// linuxpark 
+/*  jeho */
 //#define F_CPU 4000000UL
 #define F_CPU 16000000UL
 #endif
