@@ -31,14 +31,14 @@
 /* PROM read  from 0xA0 ~ 0xAE */
 #define MS5611_PROM_READ 0xA0 /* or AD2 + AD1 + AD0 + 0 */ 
 
-struct {
-	u_int16_t c1;
-	u_int16_t c2;
-	u_int16_t c3;
-	u_int16_t c4;
-	u_int16_t c5;
-	u_int16_t c6;
-} 5611_cc_tab;
+struct coeff_ms5611 {
+	uint16_t c1;
+	uint16_t c2;
+	uint16_t c3;
+	uint16_t c4;
+	uint16_t c5;
+	uint16_t c6;
+};
 
 /**
  @brief Issues reset command 
@@ -47,16 +47,16 @@ struct {
  @retval   0   device accessible
  @retval   1   failed to access device
  */
-extern unsigned char 5611_reset(void);
+extern unsigned char ms5611_reset(void);
 
 /**
  @brief read PROM and get six coff
 
- @param    pointer of the 5611_cc_tab structure
+ @param    pointer of the coeff_5611 structure
  @retval   0   device accessible
  @retval   1   failed to access device
  */
-extern unsigned char 5611_get_coefficient(struct 5611_cc_tab *);
+extern unsigned char ms5611_get_coeff(struct coeff_ms5611 *);
 
 /**
  @brief get digital values. one is pressure and the other is temperature.
@@ -65,6 +65,5 @@ extern unsigned char 5611_get_coefficient(struct 5611_cc_tab *);
  @retval   0   device accessible
  @retval   1   failed to access device
  */
-extern unsigned char 5611_get_ds(u_int8_t res, u_int32_t *d1, u_int32_t *d2)
+extern unsigned char ms5611_get_ds(uint8_t res, uint32_t *d1, uint32_t *d2);
 #endif /* _MS5611_ */
-

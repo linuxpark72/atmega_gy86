@@ -5,7 +5,6 @@
  * Created : Sun Dec 10 KST 2017
  * Author  : jeho park<linuxpark@gmail.com>
  */
-
 #include "i2c.h"
 #include "ms5611.h"
 
@@ -14,7 +13,8 @@
 
  Return:  0 means success, 1 means failure
 *************************************************************************/
-unsigned char 5611_reset(void) {
+unsigned char ms5611_reset(void)
+{
 	int ret;
 
 	i2c_start_wait(MS5611_I2C_ADDR + I2C_WRITE);
@@ -35,11 +35,12 @@ unsigned char 5611_reset(void) {
 
  Return:  0 means success, 1 write fail, 2 not accessible 
 *************************************************************************/
-unsigned char 5611_get_cc(struct 5611_cc_tab *cc) {
-	u_int8_t i;
-	u_int8_t addr;
-	u_int16_t c;
-	u_int16_t *p = (u_int16_t *)cc;
+unsigned char ms5611_get_coeff(struct coeff_ms5611 *cc) 
+{
+	uint8_t i;
+	uint8_t addr;
+	uint16_t c;
+	uint16_t *p = (uint16_t *)cc;
 
 	/* from cc1 (16bits) to cc6 */
 	for (i = 1; i < 7; i++, c = 0) {
@@ -71,8 +72,9 @@ unsigned char 5611_get_cc(struct 5611_cc_tab *cc) {
  Return:  0 means success, 1 means failure
 *************************************************************************/
 
-static unsigned char _5611_get_ds(u_int8_t n, u_int8_t r, u_int32_t *digit) {
-	u_int8_t d;
+static unsigned char _ms5611_get_ds(uint8_t n, uint8_t r, uint32_t *digit) 
+{
+	uint8_t d;
 
 	/* Figure 13: I2C Command to initiate a pressure conversion */
 	i2c_start_wait(MS5611_I2C_ADDR + I2C_WRITE);
@@ -114,16 +116,15 @@ Input: type is D1 or D2 (MS5611_CONV_D1 or MS5611_CONV_D2)
 
  Return:  0 means success, 1 means failure
 *************************************************************************/
-unsigned char 5611_get_ds(u_int8_t res, u_int32_t *d1, u_int32_t *d2) {
+unsigned char ms5611_get_ds(uint8_t res, uint32_t *d1, uint32_t *d2) 
+{
 	unsigned char ret;
 
-	if ((ret = _5611_get_ds(MS5611_CONV_D1, res, d1))) 
+	if ((ret = _ms5611_get_ds(MS5611_CONV_D1, res, d1)))
 		return ret;
 
-	if ((ret = _5611_get_ds(MS5611_CONV_D2, res, d2))) 
+	if ((ret = _ms5611_get_ds(MS5611_CONV_D2, res, d2)))
 		return ret;
 
 	return 0;
 }
-
-#endif /* _MS5611_ */

@@ -1,0 +1,23 @@
+#
+# file    : Makefile.tmpl
+#
+# Desc    :
+# Created : 2017. 12. 10
+# Author  : jeho park<linuxpark@gmail.com>
+
+PROG                = gy86
+ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
+ISP_PROG_TYPE       = stk500
+OBJS                = i2c.o uart.o ms5611.o main.o
+MCU_TARGET          = atmega128
+OPTIMIZE            = -O2
+CC                  = /opt/local/bin/avr-gcc 
+OBJCOPY             = /opt/local/bin/avr-objcopy
+OBJDUMP             = /opt/local/bin/avr-objdump 
+LOADER              = /opt/local/bin/avrdude
+INC                 = -I.
+CFLAGS              = -g -Wall $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(INC) 
+CFLAGS             += -DDEBUG
+LDFLAGS             = -Wl,-Map,$(PROG).map 
+LIBS                =
+EXTRA_CLEAN_FILES   = *.hex *.bin *.srec
