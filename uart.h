@@ -16,7 +16,7 @@ extern void uart_init(void);
 
 #ifdef  DEBUG
 #define dprint(format, args...)  \
-        printf("DEBUG: %s/%d: " format "\n\r", __FUNCTION__, __LINE__, ## args)
+        printf("(%s/%d): " format "\n\r", __FUNCTION__, __LINE__, ## args)
 #else
 #define dprint(format, args...)
 #endif
