@@ -9,7 +9,7 @@
 #define _MS5611_
 
 /* b1110 11Cx, c: complementary value of the pin CSB */
-#define MS5611_I2C_ADDR  0XEC 
+#define MS5611_I2C_ADDR  0XEE
 
 /* command */
   /* reset */
