@@ -47,38 +47,6 @@ struct coeff_ms5611 {
  @retval   0   device accessible
  @retval   1   failed to access device
  */
-/* TODO: static */
-extern unsigned char ms5611_reset(void);
-
-/**
- @brief read PROM and get six coff
-
- @param    pointer of the coeff_5611 structure
- @retval   0   device accessible
- @retval   1   failed to access device
- */
-/* TODO: static */
-extern unsigned char ms5611_get_coeff(struct coeff_ms5611 *);
-
-/**
- @brief get digital values. one is pressure and the other is temperature.
-
- @param    
-           res:  resolution (from MS5611_OSR_256 to MS5611_OSR_4096)
-           d1, d2: pointer of the two digit
- @retval   0   device accessible
- @retval   1   failed to access device
- */
-/* TODO: static */
-extern unsigned char ms5611_get_ds(uint8_t res, uint32_t *d1, uint32_t *d2);
-
-/**
- @brief Issues reset command 
-
- @param    none
- @retval   0   device accessible
- @retval   1   failed to access device
- */
 extern unsigned char ms5611_init(void);
 
 /**
@@ -86,10 +54,12 @@ extern unsigned char ms5611_init(void);
 
  @param:    
            res:  resolution (from MS5611_OSR_256 to MS5611_OSR_4096)
-           d1, d2: pointer of the two digit
+           d1: pressure
+           d2: temperature
+
  @retval   0   device accessible
  @retval   1   failed to access device
  */
-extern unsigned char ms5611_get_pressure(uint8_t res, uint32_t *d1, uint32_t *d2);
+extern unsigned char ms5611_get_pressure(uint8_t res, int32_t *d1, int32_t *d2);
 
 #endif /* _MS5611_ */
