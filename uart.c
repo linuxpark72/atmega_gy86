@@ -10,8 +10,8 @@
 static void uart_transmit(char data);
 static unsigned char uart_receive(void);
 
-FILE OUTPUT = FDEV_SETUP_STREAM(uart_transmit, NULL, _FDEV_SETUP_WRITE);
-FILE INPUT = FDEV_SETUP_STREAM(NULL, uart_receive, _FDEV_SETUP_READ);
+FILE OUTPUT = FDEV_SETUP_STREAM((void*)uart_transmit, NULL, _FDEV_SETUP_WRITE);
+FILE INPUT = FDEV_SETUP_STREAM(NULL, (void*)uart_receive, _FDEV_SETUP_READ);
 
 static void uart_transmit(char data) {
         while(!(UCSR0A & (1 << UDRE0)) );
