@@ -7,18 +7,19 @@
 #ifndef _UART_
 #define _UART_
 
-#include <avr/io.h>
 #include <stdio.h>
+
+extern void uart_init(void);
+extern void uart_transmit(char data, FILE *stream); 
+extern char uart_receive(FILE *stream);
 
 extern FILE OUTPUT;
 extern FILE INPUT;
-extern void uart_init(void);
 
 #ifdef  DEBUG
-#define dprint(format, args...)  \
-        printf("(%s/%d): " format "\n\r", __FUNCTION__, __LINE__, ## args)
+#define dprintf(format, args...)  printf(format, ## args)
 #else
-#define dprint(format, args...)
+#define dprintf(format, args...)
 #endif
 
-#endif
+#endif /* _UART_ */
