@@ -7,6 +7,9 @@
  */
 #include "i2c.h"
 #include "ms5611.h"
+#include "uart.h"
+
+uint16_t fc[6];
 
 /*************************************************************************
  reset ms5611 
@@ -35,15 +38,13 @@ static unsigned char _ms5611_reset(void)
 
  Return:  0 means success, 1 write fail, 2 not accessible 
 *************************************************************************/
-static unsigned char _ms5611_get_coeff(struct coeff_ms5611 *cc) 
+static unsigned char _ms5611_get_coeff(void) 
 {
 	uint8_t i;
 	uint8_t addr;
-	uint16_t c;
-	uint16_t *p = (uint16_t *)cc;
 
 	/* from cc1 (16bits) to cc6 */
-	for (i = 1; i < 7; i++, c = 0) {
+	for (i = 1; i < 7; i++) {
 		/* Figure 11: I2C Command to read memory address= ? */
 		i2c_start_wait(MS5611_I2C_ADDR + I2C_WRITE);
 		addr = i << 1;
@@ -54,11 +55,10 @@ static unsigned char _ms5611_get_coeff(struct coeff_ms5611 *cc)
 
 		/* Figure 12: I2C answer from MS5611-01BA */
 		i2c_start_wait(MS5611_I2C_ADDR + I2C_READ);
-		c = i2c_readAck();
-		c = c << 8;
-		c |= i2c_readNak();
+		fc[i-1] = i2c_readAck();
+		fc[i-1] <<= 8;
+		fc[i-1] |= i2c_readNak();
 		i2c_stop();
-		*p++ = c;
 	}
 
 	return 0;
@@ -130,20 +130,19 @@ static unsigned char _ms5611_get_digits(uint8_t res, uint32_t *d1, uint32_t *d2)
 /* strolen from https://github.com/jarzebski/Arduino-MS5611/blob/master/MS5611.cpp */
 static unsigned char 
 _ms5611_read_pressure(int compensate, 
-					  struct coeff_ms5611 *cc, 
 					  uint32_t *digit_press, 
 					  uint32_t *digit_temp, int32_t *pressure) {
-    int32_t dt = *digit_temp - (uint32_t)cc->c5 * 256;
+    int32_t dt = *digit_temp - (uint32_t)fc[4] * 256;
 
-    int64_t off = (int64_t)cc->c2 * 65536 + (int64_t)cc->c4 * dt / 128;
-    int64_t sens = (int64_t)cc->c1 * 32768 + (int64_t)cc->c3 * dt / 256;
+    int64_t off = (int64_t)fc[1] * 65536 + (int64_t)fc[3] * dt / 128;
+    int64_t sens = (int64_t)fc[0] * 32768 + (int64_t)fc[2] * dt / 256;
 	int32_t temp;
 	int64_t off2;
 	int64_t sens2;
 
     if (compensate) {
     
-		temp = 2000 + ((int64_t) dt * cc->c6) / 8388608;
+		temp = 2000 + ((int64_t) dt * fc[5]) / 8388608;
 		off2 = 0;
 		sens2 = 0;
 
@@ -167,10 +166,9 @@ _ms5611_read_pressure(int compensate,
 
 static unsigned char 
 _ms5611_read_temperature(int compensate, 
-						 struct coeff_ms5611 *cc, 
 						 uint32_t *digit_temp, int32_t *temperature) {
-	int32_t dt = *digit_temp - (uint32_t)cc->c5 * 256;
-	int32_t temp = 2000 + ((int64_t) dt * cc->c6) / 8388608;
+	int32_t dt = *digit_temp - (uint32_t)fc[4] * 256;
+	int32_t temp = 2000 + ((int64_t) dt * fc[5]) / 8388608;
 	int32_t temp2 = 0;
 
 	if (compensate) {
@@ -206,30 +204,34 @@ Return:  0:  means success,
 unsigned char ms5611_get_pressure(uint8_t res, 
 								  int32_t *pressure, int32_t *temperature) {
 	/* 5611 datasheet, 8pages */
-	struct coeff_ms5611 cc; 
 	unsigned char ret;
 	int compensate = 1; 
 	uint32_t digit_press, digit_temp;
 
-	ret =  _ms5611_get_coeff(&cc);
+	fc[0] = fc[1] = fc[2] = fc[3] = fc[4] = fc[5] = 0;
+	dprintf("Before> 0(%d), 1(%d), 2(%d), 3(%d) 4(%d), 5(%d)\n\r",fc[0], fc[1], fc[2], fc[3], fc[4], fc[5]); 
+	ret =  _ms5611_get_coeff();
 	if (ret) {
 		return ret;
 	}
+	dprintf("After> 0(%d), 1(%d), 2(%d), 3(%d) 4(%d), 5(%d)\n\r",fc[0], fc[1], fc[2], fc[3], fc[4], fc[5]); 
 
 	ret = _ms5611_get_digits(res, &digit_press, &digit_temp);
 	if (ret) {
 		return ret;
 	}
+	dprintf("raw press(%ld), raw temp(%ld)\n\r", digit_press, digit_temp);
 
-	ret = _ms5611_read_pressure(compensate, &cc, &digit_press, &digit_temp, pressure);
+	ret = _ms5611_read_pressure(compensate, &digit_press, &digit_temp, pressure);
 	if (ret) {
 		return ret;
 	}
 	
-	ret = _ms5611_read_temperature(compensate, &cc, &digit_temp, temperature);
+	ret = _ms5611_read_temperature(compensate, &digit_temp, temperature);
 	if (ret) {
 		return ret;
 	}
+	dprintf("pressure(%ld), temperature(%ld)\n\r", *pressure, *temperature);
 
 	return 0;
 }

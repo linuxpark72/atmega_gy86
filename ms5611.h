@@ -19,26 +19,17 @@
   /* convert D2 (ADC) */
 #define MS5611_CONV_D2   0x50
 
-/* OSR : resolution ? */
-#define MS5611_OSR_256   0x0
-#define MS5611_OSR_512   0x2
-#define MS5611_OSR_1024  0x4
-#define MS5611_OSR_2048  0x6
-#define MS5611_OSR_4096  0x8
+/* OSR : resolution           ,                         */
+#define MS5611_OSR_256   0x0  /* MS5611_ULTRA_LOW_POWER */
+#define MS5611_OSR_512   0x2  /* MS5611_LOW_POWER       */
+#define MS5611_OSR_1024  0x4  /* MS5611_STANDARD        */
+#define MS5611_OSR_2048  0x6  /* MS5611_HIGH_RES        */
+#define MS5611_OSR_4096  0x8  /* MS5611_ULTRA_HIGH_RES  */
 
 /* ADC read */
 #define MS5611_ADC_READ  0x0
 /* PROM read  from 0xA0 ~ 0xAE */
 #define MS5611_PROM_READ 0xA0 /* or AD2 + AD1 + AD0 + 0 */ 
-
-struct coeff_ms5611 {
-	uint16_t c1;
-	uint16_t c2;
-	uint16_t c3;
-	uint16_t c4;
-	uint16_t c5;
-	uint16_t c6;
-};
 
 /**
  @brief Issues reset command 
