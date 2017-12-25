@@ -33,11 +33,7 @@
 #endif
 
 /* I2C clock in Hz */
-//#define SCL_CLOCK  100000L
-#define SCL_CLOCK  400000L
-
-/* I2C timer max delay */
-#define I2C_TIMER_DELAY 0xFF
+#define SCL_CLOCK  100000L
 
 /*************************************************************************
  Initialization of the I2C bus interface. Need to be called only once
@@ -58,17 +54,12 @@ void i2c_init(void)
 *************************************************************************/
 unsigned char i2c_start(unsigned char address)
 {
-	uint32_t  i2c_timer = 0;
     uint8_t   twst;
 
 	// send START condition
 	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 
-	// wait until transmission completed
-	i2c_timer = I2C_TIMER_DELAY;
-	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
-	if(i2c_timer == 0)
-		return 1;
+	while(!(TWCR & (1<<TWINT)));
 
 	// check value of TWI Status Register. Mask prescaler bits.
 	twst = TW_STATUS & 0xF8;
@@ -78,11 +69,7 @@ unsigned char i2c_start(unsigned char address)
 	TWDR = address;
 	TWCR = (1<<TWINT) | (1<<TWEN);
 
-	// wail until transmission completed and ACK/NACK has been received
-	i2c_timer = I2C_TIMER_DELAY;
-	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
-	if(i2c_timer == 0)
-		return 1;
+	while(!(TWCR & (1<<TWINT)));
 
 	// check value of TWI Status Register. Mask prescaler bits.
 	twst = TW_STATUS & 0xF8;
@@ -101,7 +88,6 @@ unsigned char i2c_start(unsigned char address)
 *************************************************************************/
 void i2c_start_wait(unsigned char address)
 {
-	uint32_t  i2c_timer = 0;
 	uint8_t   twst;
 
     while ( 1 )
@@ -110,8 +96,7 @@ void i2c_start_wait(unsigned char address)
 	    TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
     
     	// wait until transmission completed
-	    i2c_timer = I2C_TIMER_DELAY;
-    	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
+    	while(!(TWCR & (1<<TWINT)));
 
     	// check value of TWI Status Register. Mask prescaler bits.
     	twst = TW_STATUS & 0xF8;
@@ -122,8 +107,7 @@ void i2c_start_wait(unsigned char address)
     	TWCR = (1<<TWINT) | (1<<TWEN);
     
     	// wail until transmission completed
-    	i2c_timer = I2C_TIMER_DELAY;
-    	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
+    	while(!(TWCR & (1<<TWINT)));
     
     	// check value of TWI Status Register. Mask prescaler bits.
     	twst = TW_STATUS & 0xF8;
@@ -133,8 +117,7 @@ void i2c_start_wait(unsigned char address)
 	        TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 	        
 	        // wait until stop condition is executed and bus released
-	        i2c_timer = I2C_TIMER_DELAY;
-	        while((TWCR & (1<<TWSTO)) && i2c_timer--);
+	        while((TWCR & (1<<TWSTO)));
 	        
     	    continue;
     	}
@@ -165,14 +148,12 @@ unsigned char i2c_rep_start(unsigned char address)
 *************************************************************************/
 void i2c_stop(void)
 {
-	uint32_t  i2c_timer = 0;
 
     /* send stop condition */
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 	
 	// wait until stop condition is executed and bus released
-	i2c_timer = I2C_TIMER_DELAY;
-	while((TWCR & (1<<TWSTO)) && i2c_timer--);
+	while((TWCR & (1<<TWSTO)));
 
 }/* i2c_stop */
 
@@ -186,7 +167,6 @@ void i2c_stop(void)
 *************************************************************************/
 unsigned char i2c_write( unsigned char data )
 {	
-	uint32_t  i2c_timer = 0;
     uint8_t   twst;
     
 	// send data to the previously addressed device
@@ -194,10 +174,7 @@ unsigned char i2c_write( unsigned char data )
 	TWCR = (1<<TWINT) | (1<<TWEN);
 
 	// wait until transmission completed
-	i2c_timer = I2C_TIMER_DELAY;
-	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
-	if(i2c_timer == 0)
-		return 1;
+	while(!(TWCR & (1<<TWINT)));
 
 	// check value of TWI Status Register. Mask prescaler bits
 	twst = TW_STATUS & 0xF8;
@@ -214,14 +191,8 @@ unsigned char i2c_write( unsigned char data )
 *************************************************************************/
 unsigned char i2c_readAck(void)
 {
-	uint32_t  i2c_timer = 0;
-
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWEA);
-	i2c_timer = I2C_TIMER_DELAY;
-	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
-	if(i2c_timer == 0)
-		return 0;
-
+	while(!(TWCR & (1<<TWINT)));
     return TWDR;
 
 }/* i2c_readAck */
@@ -234,14 +205,28 @@ unsigned char i2c_readAck(void)
 *************************************************************************/
 unsigned char i2c_readNak(void)
 {
-	uint32_t  i2c_timer = 0;
-
 	TWCR = (1<<TWINT) | (1<<TWEN);
-	i2c_timer = I2C_TIMER_DELAY;
-	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
-	if(i2c_timer == 0)
-		return 0;
-	
+	while(!(TWCR & (1<<TWINT)));
     return TWDR;
 
 }/* i2c_readNak */
+
+//********************************************************
+//! @brief send command using I2C hardware interface
+//!
+//! @return none
+//********************************************************
+void i2c_send(char cmd)
+{
+	unsigned char ret;
+
+	ret = i2c_start(ADDR_W); // set device address and write mode
+	if ( ret ) {
+		//failed to issue start condition, possibly no device found */
+		i2c_stop();
+	} else {
+		// issuing start condition ok, device accessible
+		ret = i2c_write(cmd);
+		i2c_stop();
+	}
+}

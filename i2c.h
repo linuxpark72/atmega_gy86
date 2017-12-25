@@ -181,6 +181,11 @@ extern unsigned char i2c_readNak(void);
 extern unsigned char i2c_read(unsigned char ack);
 #define i2c_read(ack)  (ack) ? i2c_readAck() : i2c_readNak(); 
 
+/**
+ @brief send command using I2C hardware interface
 
+ @return none
+ */
+void i2c_send(char cmd);
 /**@}*/
 #endif
