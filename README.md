@@ -5,7 +5,10 @@ at the later, i will apply this gy86 sensor and its code to my drone.
 
 ## Test environment
 
-  - atmega128 + gy86 (10 axis gyro sensor) 
+  - [atmega128 + gy86, 10 axis gyro sensor]
+  - development host: mac os x (avr-gcc, avrdude), isp(AD-USBISP v06.0, $25).  please refer to Makefile.tmpl of this project.
+  - target device: atmega 128A
+  - if you want to know more about the environment, please sent me email.
 
 
 ## current status of this project
