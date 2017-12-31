@@ -107,10 +107,8 @@ unsigned int ms5611_get_coeffs(unsigned int C[]) {
 
 	for (i = 0; i < 8; i++) {
 		C[i] = cmd_prom(i);    // read coefficients
-#if 0
 		if (!C[i])
 			return C[i];
-#endif
 	}
 
 	return 1;
