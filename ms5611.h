@@ -8,49 +8,61 @@
 #ifndef _MS5611_
 #define _MS5611_
 
-/* b1110 11Cx, c: complementary value of the pin CSB */
-#define MS5611_I2C_ADDR  0XEE
+#define TRUE            1
+#define FALSE           0
 
-/* command */
-  /* reset */
-#define MS5611_RESET     0x1E
-  /* convert D1 (ADC) */
-#define MS5611_CONV_D1   0x40
-  /* convert D2 (ADC) */
-#define MS5611_CONV_D2   0x50
+#define MS5611_ADDR  0XEE
+#define ADDR_W       MS5611_ADDR + I2C_WRITE
+#define ADDR_R       MS5611_ADDR + I2C_READ
 
-/* OSR : resolution           ,                         */
-#define MS5611_OSR_256   0x0  /* MS5611_ULTRA_LOW_POWER */
-#define MS5611_OSR_512   0x2  /* MS5611_LOW_POWER       */
-#define MS5611_OSR_1024  0x4  /* MS5611_STANDARD        */
-#define MS5611_OSR_2048  0x6  /* MS5611_HIGH_RES        */
-#define MS5611_OSR_4096  0x8  /* MS5611_ULTRA_HIGH_RES  */
-
-/* ADC read */
-#define MS5611_ADC_READ  0x0
-/* PROM read  from 0xA0 ~ 0xAE */
-#define MS5611_PROM_READ 0xA0 /* or AD2 + AD1 + AD0 + 0 */ 
+#define CMD_RESET    0x1E
+#define CMD_ADC_READ 0x00
+#define CMD_ADC_CONV 0x40
+#define CMD_ADC_D1   0x00
+#define CMD_ADC_D2   0x10
+#define CMD_ADC_256  0x00
+#define CMD_ADC_512  0x02
+#define CMD_ADC_1024 0x04
+#define CMD_ADC_2048 0x06
+#define CMD_ADC_4096 0x08
+#define CMD_PROM_RD  0xA0
 
 /**
- @brief Issues reset command 
+ @brief reset ms5611, no needed delay
 
- @param    none
- @retval   0   device accessible
- @retval   1   failed to access device
+ @param  null
+
+ @return  0: fail, 1: success
  */
-extern unsigned char ms5611_init(void);
+unsigned int ms5611_reset(void);
 
 /**
- @brief get digital values. one is pressure and the other is temperature.
+ @brief get 6 coefficients from ms5611 prom 
 
- @param:    
-           res:  resolution (from MS5611_OSR_256 to MS5611_OSR_4096)
-           d1: pressure
-           d2: temperature
+ @param n_prom : unsigned int n_prom[8] : coefficients called by ref
 
- @retval   0   device accessible
- @retval   1   failed to access device
+ @return  0: fail, 1: success;
  */
-extern unsigned char ms5611_get_pressure(uint8_t res, int32_t *d1, int32_t *d2);
+unsigned int ms5611_get_coeffs(unsigned int n_prom[]);
 
+/**
+ @brief calculate CRC value with the coefficient you send
+
+ @param n_prom : unsigned int n_prom[8] : coefficients which 
+                 was gotten from  ms5611_get_coefficient()
+
+ @return  0: fail, 1: success;
+ */
+unsigned char ms5611_cal_crc4(unsigned int n_prom[]);
+
+/**
+ @brief calculate P, T with the coefficients 
+
+ @param n_prom : unsigned int C[8] : coefficients
+        p : pressure calculated 
+        t : temperature calculated 
+
+ @return  0: fail, 1: success;
+ */
+unsigned int ms5611_get_pt(unsigned int n_prom[], double *p, double *t);
 #endif /* _MS5611_ */
