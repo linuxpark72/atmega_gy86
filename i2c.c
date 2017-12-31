@@ -21,19 +21,13 @@
 **************************************************************************/
 #include <inttypes.h>
 #include <compat/twi.h>
-
 #include "i2c.h"
 
-
-/* define CPU frequency in Mhz here if not defined in Makefile */
-#ifndef F_CPU
-/*  jeho */
-//#define F_CPU 4000000UL
-#define F_CPU 16000000UL
-#endif
-
+#ifndef SCL_CLOCK
 /* I2C clock in Hz */
-#define SCL_CLOCK  100000L
+#warn "define SCL_CLOCK in Makefile.tmpl"
+#define SCL_CLOCK  100000L /* 100Khz */
+#endif
 
 /*************************************************************************
  Initialization of the I2C bus interface. Need to be called only once
@@ -78,7 +72,6 @@ unsigned char i2c_start(unsigned char address)
 	return 0;
 
 }/* i2c_start */
-
 
 /*************************************************************************
  Issues a start condition and sends address and transfer direction.
@@ -165,7 +158,7 @@ void i2c_stop(void)
   Return:   0 write successful 
             1 write failed
 *************************************************************************/
-unsigned char i2c_write( unsigned char data )
+unsigned char i2c_write(unsigned char data )
 {	
     uint8_t   twst;
     
@@ -211,22 +204,24 @@ unsigned char i2c_readNak(void)
 
 }/* i2c_readNak */
 
-//********************************************************
-//! @brief send command using I2C hardware interface
-//!
-//! @return none
-//********************************************************
-void i2c_send(char cmd)
-{
-	unsigned char ret;
+/********************************************************
+ @brief send command using I2C hardware interface
 
-	ret = i2c_start(ADDR_W); // set device address and write mode
-	if ( ret ) {
-		//failed to issue start condition, possibly no device found */
-		i2c_stop();
-	} else {
-		// issuing start condition ok, device accessible
-		ret = i2c_write(cmd);
-		i2c_stop();
-	}
+ @return 0: fail, 1: success
+********************************************************/
+unsigned int i2c_send(char addr, char cmd)
+{
+    unsigned char ret;
+
+    ret = i2c_start(addr + I2C_WRITE /* 0 */); // set device address and write mode
+    if ( ret ) {
+        //failed to issue start condition, possibly no device found */
+        i2c_stop();
+		return 0;
+    } else {
+        // issuing start condition ok, device accessible
+        ret = i2c_write(cmd);
+        i2c_stop();
+		return 1;
+    }
 }
