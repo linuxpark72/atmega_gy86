@@ -13,7 +13,7 @@ at the later, i will apply this gy86 sensor and its code to my drone.
 
 ## current status of this project
 
-  - ms5611   : 90%
+  - ms5611   : 90%,
                it was tested but the first two coefficients return negative integers ..
 			   i think my sensor was broken so i will change the gy86 sensor with others later. 
 
