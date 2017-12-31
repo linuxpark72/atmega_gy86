@@ -19,6 +19,9 @@ clean:
 load: clean $(PROG).bin 
 	$(LOADER) -p $(MCU_TARGET) -c $(ISP_PROG_TYPE) -P $(ISP_DEV_NAME) -U flash:w:$(PROG).bin:r
 
+tag:
+	ctags *
+
 lst:  $(PROG).lst
 
 %.lst: %.elf
