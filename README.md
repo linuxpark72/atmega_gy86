@@ -13,10 +13,8 @@ at the later, i will apply this gy86 sensor and its code to my drone.
 
 ## current status of this project
 
-  - ms5611   : 90%,
-               it was tested but the first two coefficients return negative integers ..
-			   i think my sensor was broken so i will change the gy86 sensor with others later. 
-
+  - ms5611   : (90%, needed more valification), https://youtu.be/iHecBikMY48, 
+               1. validation of crc, 2. check accuracy of compensated Press, Temp
   - HMC5883L : 0%
   - MPU6050  : 0%
 
@@ -26,7 +24,7 @@ at the later, i will apply this gy86 sensor and its code to my drone.
   - HMC5883L :
                1. analyze this sensor with its datasheet as soon as possible. 
   - ms5611   : 
-               2. change current sensor with another and test again.
+               2. validation of crc -> check accuracy of compensated Press, Temp.
   - MPU6050  :
                3. maybe from febuary of 2018.
   - drone    :
@@ -40,5 +38,5 @@ at the later, i will apply this gy86 sensor and its code to my drone.
 --- 
  welcome any feedback :)
 
- Jan.  1. 2018
+ updated  Jan.  6. 2018
  JeHo Park <linuxpark@gmail.com> 
