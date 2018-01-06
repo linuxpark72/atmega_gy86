@@ -22,6 +22,7 @@
 #include <inttypes.h>
 #include <compat/twi.h>
 #include "i2c.h"
+//#include "uart.h"
 
 #ifndef SCL_CLOCK
 /* I2C clock in Hz */
@@ -213,13 +214,13 @@ unsigned int i2c_send(char addr, char cmd)
 {
     unsigned char ret;
 
-    ret = i2c_start(addr + I2C_WRITE /* 0 */); // set device address and write mode
-    if ( ret ) {
-        //failed to issue start condition, possibly no device found */
-        i2c_stop();
+	ret = i2c_start(addr + I2C_WRITE /* 0 */); // set device address and write mode
+	if ( ret ) {
+		//failed to issue start condition, possibly no device found */
+		i2c_stop();
 		return 0;
-    } else {
-        // issuing start condition ok, device accessible
+	} else {
+		// issuing start condition ok, device accessible
         ret = i2c_write(cmd);
         i2c_stop();
 		return 1;
