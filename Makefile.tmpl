@@ -13,7 +13,7 @@ ISP_PROG_TYPE       = stk500
 OBJS                = i2c.o uart.o ms5611.o main.o
 ### check 3. target mcu.
 MCU_TARGET          = atmega128
-OPTIMIZE            = -O2
+OPTIMIZE            = -O1
 OPTIMIZE           += -D__OPTIMIZE__
 CC                  = /opt/local/bin/avr-gcc 
 OBJCOPY             = /opt/local/bin/avr-objcopy
