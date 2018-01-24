@@ -6,8 +6,10 @@
  * Author  : jeho park<linuxpark@gmail.com>
  */
 #include <util/delay.h>
+#include <math.h>
 #include "i2c.h"
 #include "ms5611.h"
+#include "uart.h"
 
 /********************************************************
  @brief send command using I2C hardware interface
@@ -168,11 +170,17 @@ unsigned int ms5611_get_pt(unsigned int C[], double *p, double *t) {
 
 	// calcualte 1st order pressure and
 	// temperature (MS5607 1st order algorithm)
-	dT = D2 - C[5] * pow(2,8);
-	OFF = C[2] * pow(2,17) + dT * C[4]/pow(2,6);
-	SENS = C[1] * pow(2,16) + dT * C[3]/pow(2,7);
+	//dT = D2 - C[5] * pow(2,8);
+	dT = D2 - ((uint64_t) C[5] << 8);
+	//OFF = C[2] * pow(2,17) + dT * C[4]/pow(2,6);
+	OFF = (uint64_t)C[2] * pow(2,17) + dT * (uint64_t)C[4]/pow(2,6);
+	//SENS = C[1] * pow(2,16) + dT * C[3]/pow(2,7);
+	SENS = (uint64_t)C[1] * pow(2,16) + dT * (uint64_t)C[3]/pow(2,7);
 
-	*t = (2000 + (dT*C[6])/pow(2,23))/100;
+	dprintf("-------------> dT: %7.4f\n", dT);
+	//*t = (2000 + (dT*C[6])/pow(2,23))/100;
+	*t = (2000 + (dT * (uint64_t)C[6])/pow(2,23))/100;
+	//*p = (((D1*SENS)/pow(2,21) -OFF)/pow(2,15))/100;
 	*p = (((D1*SENS)/pow(2,21) -OFF)/pow(2,15))/100;
 
 	return 1;
