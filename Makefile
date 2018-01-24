@@ -27,17 +27,9 @@ lst:  $(PROG).lst
 %.lst: %.elf
 	$(OBJDUMP) -h -S $< > $@
 
-text: hex bin srec
+text: bin
 
-hex:  $(PROG).hex
 bin:  $(PROG).bin
-srec: $(PROG).srec
-
-%.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -O ihex $< $@
-
-%.srec: %.elf
-	$(OBJCOPY) -j .text -j .data -O srec $< $@
 
 %.bin: %.elf
 	$(OBJCOPY) -j .text -j .data -O binary $< $@
