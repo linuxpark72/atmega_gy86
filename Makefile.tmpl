@@ -22,7 +22,10 @@ LOADER              = /opt/local/bin/avrdude
 INC                 = -I.
 # CFLAGS
 ########
-CFLAGS              = -g -Wall $(INC) 
+CFLAGS             = -g -Wall -gdwarf-2
+CFLAGS             += -std=gnu99 -Wl,-u,vfprintf
+CFLAGS             += -Wshift-count-overflow
+CFLAGS             += $(INC)
 CFLAGS             += $(OPTIMIZE)
 CFLAGS             += -mmcu=$(MCU_TARGET)
 CFLAGS             += -DDEBUG
@@ -31,6 +34,6 @@ CFLAGS             += -DF_CPU=16000000UL
 ### check 5. i2c clock hz.
 CFLAGS             += -DSCL_CLOCK=100000L
 ########
-LDFLAGS             = -Wl,-Map,$(PROG).map 
-LIBS                = -lm
+LDFLAGS             = -Wl,-Map,$(PROG).map
+LIBS                = -lm -lprintf_flt
 EXTRA_CLEAN_FILES   = *.hex *.bin *.srec
