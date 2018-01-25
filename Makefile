@@ -13,7 +13,7 @@ $(PROG).elf: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o  $@  $^  $(LIBS)
 
 clean:
-	rm -rf *.o $(PROG).elf *.eps *.png *.pdf *.bak
+	rm -rf *.o $(PROG).elf *.eps *.png *.pdf *.bak tags
 	rm -rf *.lst *.map $(EXTRA_CLEAN_FILES)
 
 load: clean $(PROG).bin 
