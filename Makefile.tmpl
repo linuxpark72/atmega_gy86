@@ -37,3 +37,5 @@ CFLAGS             += -DSCL_CLOCK=100000L
 LDFLAGS             = -Wl,-Map,$(PROG).map
 LIBS                = -lm -lprintf_flt
 EXTRA_CLEAN_FILES   = *.hex *.bin *.srec
+# $brew install ctags
+CTAGS               = /usr/local/Cellar/ctags/5.8_1/bin/ctags
