@@ -34,7 +34,7 @@
 
  @return  0: fail, 1: success
  */
-unsigned int ms5611_reset(void);
+extern unsigned int ms5611_reset(void);
 
 /**
  @brief get 6 coefficients from ms5611 prom 
@@ -43,7 +43,7 @@ unsigned int ms5611_reset(void);
 
  @return  0: fail, 1: success;
  */
-unsigned int ms5611_get_coeffs(unsigned int n_prom[]);
+extern unsigned int ms5611_get_coeffs(unsigned int n_prom[]);
 
 /**
  @brief calculate CRC value with the coefficient you send
@@ -53,7 +53,7 @@ unsigned int ms5611_get_coeffs(unsigned int n_prom[]);
 
  @return  0: fail, 1: success;
  */
-unsigned char ms5611_cal_crc4(unsigned int n_prom[]);
+extern unsigned char ms5611_cal_crc4(unsigned int n_prom[]);
 
 /**
  @brief calculate P, T with the coefficients 
@@ -64,5 +64,5 @@ unsigned char ms5611_cal_crc4(unsigned int n_prom[]);
 
  @return  0: fail, 1: success;
  */
-unsigned int ms5611_get_pt(unsigned int n_prom[], double *p, double *t);
+extern unsigned int ms5611_get_pt(unsigned int n_prom[], double *p, double *t);
 #endif /* _MS5611_ */
