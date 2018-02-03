@@ -11,8 +11,8 @@
 #include "uart.h"
 #include "ms5611.h"
 
-unsigned int sm2tc(unsigned int x) {
-  unsigned int m = x >> (sizeof(unsigned int) * 8 - 1);
+int sm2tc(int x) {
+  int m = x >> (sizeof(int) * 8 - 1);
   return (~m & x) | (((x & 0x8000) - x) & m);
 }
 
@@ -41,9 +41,11 @@ int main(void) {
 	}
 
 	/* TODO: these two coefficient are always negative so i take these 2's complement */
+#if 1
 	n_prom[1] = sm2tc(n_prom[1]);
 	n_prom[2] = sm2tc(n_prom[2]);
-
+	n_prom[7] = sm2tc(n_prom[7]);
+#endif
 	/* TODO: verify crc */
 	n_crc = ms5611_cal_crc4(n_prom);  /* calculate the CRC */
 
@@ -55,9 +57,9 @@ int main(void) {
 			continue;
 		}
 		
-		printf("- %d/%d- \n0[%d], 1[%d], 2[%d], 3[%d], 4[%d], 5[%d], 6[%d], 7[%d],"
-				" CRC(0x%x)\nTemperature(%5.2f), Pressure(%7.2f mbar)\n\n",
-				sizeof(int), sizeof(unsigned int),
+		printf("n0[%d], 1[%d], 2[%d], 3[%d]\n"
+			   "4[%d], 5[%d], 6[%d], 7[%d]\n"
+				">>> CRC(0x%x), Temp(%5.2f), Press(%7.2f mbar)\n\n",
 				n_prom[0], n_prom[1], n_prom[2], n_prom[3], 
 				n_prom[4], n_prom[5], n_prom[6], n_prom[7], 
 				n_crc, T,  P);
