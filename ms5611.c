@@ -60,7 +60,7 @@ static unsigned long cmd_adc(char cmd)
 		case CMD_ADC_4096: _delay_ms(10); break;
 	}
 	ms5611_i2c_send(CMD_ADC_READ);
-	ret = i2c_start(ADDR_R); // set device address and read mode if ( ret )
+	ret = i2c_start(MS5611_ADDR_R); // set device address and read mode if ( ret )
 	if (ret) {
 		//failed to issue start condition, possibly no device found
 		i2c_stop();
@@ -89,7 +89,7 @@ static unsigned int cmd_prom(char coef_num)
 	unsigned int rC = 0;
 
 	ms5611_i2c_send(CMD_PROM_RD+coef_num*2);
-	ret = i2c_start(ADDR_R);
+	ret = i2c_start(MS5611_ADDR_R);
 	if (ret) {
 		//failed to issue start condition, possibly no device found
 		i2c_stop();
@@ -184,4 +184,62 @@ unsigned int ms5611_get_pt(unsigned int C[], double *p, double *t) {
 	*p = (((D1*SENS)/pow(2,21) -OFF)/pow(2,15))/100;
 
 	return 1;
+}
+
+static int sm2tc(int x) {
+  int m = x >> (sizeof(int) * 8 - 1);
+  return (~m & x) | (((x & 0x8000) - x) & m);
+}
+
+int ms5611_test() {
+	unsigned int n_prom[8]; // calibration coefficients
+	double P;               // compensated pressure value
+	double T;               // compensated temperature value
+	unsigned char n_crc;  // crc value of the prom
+	unsigned int ret;
+	int i;
+
+	printf("\n%s initialized...\n", __FUNCTION__);
+	ret = ms5611_reset();              // reset IC
+	if (!ret) {
+		printf("failed to ms5611_reset(): %d\n", ret);
+		return 0;
+	}
+
+	ret = ms5611_get_coeffs(n_prom);   // get coefficient 
+	if (!ret) {
+		printf("failed to ms5611_get_coeffs(): %d\n", ret);
+		return 0;
+	}
+
+	/* TODO: these two coefficient are always negative so 
+	 * i take these 2's complement */
+#if 1
+	n_prom[1] = sm2tc(n_prom[1]);
+	n_prom[2] = sm2tc(n_prom[2]);
+	n_prom[7] = sm2tc(n_prom[7]);
+#endif
+	/* TODO: verify crc */
+	n_crc = ms5611_cal_crc4(n_prom);  /* calculate the CRC */
+
+	/* TODO: remove this loop */
+	for(i = 0; i < 10; i++) {
+		/*  calculate P, T with the coefficients */
+		ret = ms5611_get_pt(n_prom, &P, &T);
+		if (!ret) {
+			printf("failed to ms5611_get_pt(): %d\n", ret);
+			continue;
+		}
+		
+		printf("n0[%d], 1[%d], 2[%d], 3[%d]\n"
+			   "4[%d], 5[%d], 6[%d], 7[%d]\n"
+				">>> CRC(0x%x), Temp(%5.2f), Press(%7.2f mbar)\n\n",
+				n_prom[0], n_prom[1], n_prom[2], n_prom[3], 
+				n_prom[4], n_prom[5], n_prom[6], n_prom[7], 
+				n_crc, T,  P);
+		_delay_ms(1000);
+	}
+
+	printf("%s exit...\n", __FUNCTION__);
+	return 0;
 }
