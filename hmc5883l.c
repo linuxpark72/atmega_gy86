@@ -1,9 +1,10 @@
 /*
  *  hmc5883l.c
  *
- * Desc    : 
- * Created : 
+ * Desc    : 3-Axis Digital compass IC driver.
+ * Created : 2018. 2.  4
  * Author  : jeho park<linuxpark@gmail.com>
+ *
  */
 #include "i2c.h"
 #include "uart.h"
