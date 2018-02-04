@@ -15,7 +15,7 @@ at the later, i will apply this gy86 sensor and its code to my drone.
 
   - ms5611   : (90%, needed more valification), https://youtu.be/iHecBikMY48, 
                1. validation of crc, 2. check accuracy of compensated Press, Temp
-  - HMC5883L : 0%
+  - HMC5883L : 20%
   - MPU6050  : 0%
 
 
