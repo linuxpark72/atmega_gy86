@@ -56,11 +56,48 @@ static unsigned int hmc5883l_setup_mr(unsigned char md) {
 	return hmc5883l_setup_reg(HMC5883L_ADDR_MR, val);
 }
 
-static unsigned int hmc5883l_read_sr(void) {
+static unsigned char hmc5883l_read_sr() {
 	unsigned int ret;
+	unsigned char status;
 
-	ret = hmc5883l_i2c_send(HMC5883L_READ);
-	/* TODO */
+	ret = hmc5883l_i2c_send(HMC5883L_ADDR_SR);
+	if (!ret) {
+		/* fail */
+		return ret;
+	} 
+	
+	/* success */
+	ret = i2c_start(HMC5883L_READ);
+	if (ret) {
+		i2c_stop();
+	} else {
+		status = i2c_readNak();
+		i2c_stop();
+	}
+
+	return status;
+}
+
+static void hmc5883l_wait_data() {
+	unsigned char status;
+	unsigned char wait = 0;
+
+	do {
+		status = hmc5883l_read_sr();
+
+		if (status & (1 << SR_LOCK_SHIFT))  {
+			/* now, locked */
+			wait = 1;
+		}
+
+		if (!(status & (1 << SR_RDY_SHIFT)))  {
+			/* not ready */
+			wait = 1;
+		}
+
+		_delay_us(250);
+
+	} while (wait);
 }
 
 int hmc5883l_test(void) {
@@ -86,10 +123,9 @@ int hmc5883l_test(void) {
 		return 0;
 	}
 
+	hmc5883l_wait_data(); /* about 6ms */ 
 	
 	/* single-measurement mode */
-
-
 	printf("%s exit...\n", __FUNCTION__);
 	return ret;
 }
