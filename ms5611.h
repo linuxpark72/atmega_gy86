@@ -69,4 +69,6 @@ extern unsigned char ms5611_cal_crc4(unsigned int n_prom[]);
  @return  0: fail, 1: success;
  */
 extern unsigned int ms5611_get_pt(unsigned int n_prom[], double *p, double *t);
+
+extern int ms5611_test();
 #endif /* _MS5611_ */
