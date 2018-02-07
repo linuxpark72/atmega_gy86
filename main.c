@@ -9,8 +9,12 @@
 #include <util/delay.h>
 #include "i2c.h"
 #include "uart.h"
+#if defined(MS5611_TEST)
 #include "ms5611.h"
+#endif 
+#if defined(HMC5883L_TEST)
 #include "hmc5883l.h"
+#endif 
 
 int main(void) {
 	stdout = &OUTPUT;
