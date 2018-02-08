@@ -6,6 +6,7 @@
  * Author  : jeho park<linuxpark@gmail.com>
  *
  */
+#include <util/delay.h>
 #include "i2c.h"
 #include "uart.h"
 #include "hmc5883l.h"
@@ -56,6 +57,10 @@ static unsigned int hmc5883l_setup_mr(unsigned char md) {
 	return hmc5883l_setup_reg(HMC5883L_ADDR_MR, val);
 }
 
+/*
+ * fail: 0
+ * success: 0b11  [
+ */
 static unsigned char hmc5883l_read_sr() {
 	unsigned int ret;
 	unsigned char status;
@@ -63,13 +68,14 @@ static unsigned char hmc5883l_read_sr() {
 	ret = hmc5883l_i2c_send(HMC5883L_ADDR_SR);
 	if (!ret) {
 		/* fail */
-		return ret;
+		return 0;
 	} 
 	
 	/* success */
 	ret = i2c_start(HMC5883L_READ);
 	if (ret) {
 		i2c_stop();
+		return 0;
 	} else {
 		status = i2c_readNak();
 		i2c_stop();
@@ -78,30 +84,45 @@ static unsigned char hmc5883l_read_sr() {
 	return status;
 }
 
-static void hmc5883l_wait_data() {
+/* 
+ * fail: 0
+ * success: status, ready
+ */
+static unsigned char hmc5883l_wait_data() {
 	unsigned char status;
-	unsigned char wait = 0;
 
 	do {
 		status = hmc5883l_read_sr();
+		if (!status) {
+			return 0;
+		}
 
 		if (status & (1 << SR_LOCK_SHIFT))  {
 			/* now, locked */
-			wait = 1;
+			_delay_us(250);
+			continue;
 		}
 
 		if (!(status & (1 << SR_RDY_SHIFT)))  {
-			/* not ready */
-			wait = 1;
+			/* ready */
+			_delay_us(250);
+			continue;
 		}
+		
+		/* now, no locked and ready to be read */
+		break;
 
-		_delay_us(250);
+	} while (1);
 
-	} while (wait);
+	return status;
 }
 
+/* continuous mode */
 int hmc5883l_test(void) {
-	unsigned int ret;
+#if defined(HMC5883L_TEST)
+	int ret;
+#if defined(HMC5883L_CC_MODE)
+	int16_t x, z, y;
 
 	printf("\n%s initialized...\n", __FUNCTION__);
 	/* continuous-measurement mode */
@@ -123,9 +144,65 @@ int hmc5883l_test(void) {
 		return 0;
 	}
 
-	hmc5883l_wait_data(); /* about 6ms */ 
-	
-	/* single-measurement mode */
-	printf("%s exit...\n", __FUNCTION__);
-	return ret;
+	do {
+		/* 1. wait about 6ms or check SR */ 
+		hmc5883l_wait_data(); 
+
+		/* 2. 0x3D 0x06 : send cmd: which means "i will read 6 bytes" */
+		ret = i2c_start(HMC5883L_READ);
+		if ( ret ) {
+			//failed to issue start condition, possibly no device found */
+			i2c_stop();
+			printf("failed to set device addr %d\n", __LINE__);
+			return 0;
+		} else {
+			// issuing start condition ok, device accessible
+			// now pointer is point to 0x03 which is address of X 
+			ret = i2c_write(0x06); /* read 6 bytes */
+			i2c_stop();
+		}
+
+		/* 2. read 6 bytes */
+		ret = i2c_start(HMC5883L_READ);
+		if (ret) {
+			/* fail */
+			i2c_stop();
+			printf("Failed to start i2c (%d)\n", __LINE__);
+			return 0;
+		} else {
+			x = z = y = 0;
+			/* x, z, y, the size of each is 16bits */
+			x = i2c_readAck();
+			x <<= 8;
+			x |= i2c_readAck();
+
+			z = i2c_readAck();
+			z <<= 8;
+			z |= i2c_readAck();
+
+			y = i2c_readAck();
+			y <<= 8;
+			y |= i2c_readNak();
+			i2c_stop();
+		}
+
+		/* convert three 16-bit 2's compliment 
+		https://www.programiz.com/c-programming/bitwise-operators#complement
+		*/
+		x = (~x + 1) * -1;
+		z = (~z + 1) * -1;
+		y = (~y + 1) * -1;
+		printf("x(%d), y(%d), z(%d)\n", x, y, z);
+
+		hmc5883l_i2c_send(0x3);
+	} while (1);
+
+	return 1;
+#else
+	/* single mode */
+
+#endif  /* HMC5883L_CC_MODE */
+
+#endif /* HMC5883L_TEST */
+	return 1;
 }
