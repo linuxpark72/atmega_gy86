@@ -186,12 +186,15 @@ unsigned int ms5611_get_pt(unsigned int C[], double *p, double *t) {
 	return 1;
 }
 
+#if defined(MS5611_TEST)
 static int sm2tc(int x) {
   int m = x >> (sizeof(int) * 8 - 1);
   return (~m & x) | (((x & 0x8000) - x) & m);
 }
+#endif
 
 int ms5611_test() {
+#if defined(MS5611_TEST)
 	unsigned int n_prom[8]; // calibration coefficients
 	double P;               // compensated pressure value
 	double T;               // compensated temperature value
@@ -241,5 +244,6 @@ int ms5611_test() {
 	}
 
 	printf("%s exit...\n", __FUNCTION__);
+#endif
 	return 0;
 }
