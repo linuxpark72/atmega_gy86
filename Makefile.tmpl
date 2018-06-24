@@ -11,7 +11,6 @@ ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
 ### check 2. isp device.
 ISP_PROG_TYPE       = stk500
 OBJS                = i2c.o uart.o ms5611.o hmc5883l.o main.o
-#OBJS                = i2c.o uart.o ms5611.o main.o
 ### check 3. target mcu.
 MCU_TARGET          = atmega128
 OPTIMIZE            = -O1
@@ -22,7 +21,6 @@ OBJDUMP             = /opt/local/bin/avr-objdump
 LOADER              = /opt/local/bin/avrdude
 INC                 = -I.
 # CFLAGS
-########
 CFLAGS             = -g -Wall -gdwarf-2
 CFLAGS             += -std=gnu99 -Wl,-u,vfprintf
 CFLAGS             += -Wshift-count-overflow
@@ -30,14 +28,9 @@ CFLAGS             += $(INC)
 CFLAGS             += $(OPTIMIZE)
 CFLAGS             += -mmcu=$(MCU_TARGET)
 CFLAGS             += -DDEBUG
-### check 4. mcu clock hz.
-CFLAGS             += -DF_CPU=16000000UL
-### check 5. i2c clock hz.
-CFLAGS             += -DSCL_CLOCK=100000L
-########
-### check 6. which test
 #CFLAGS             += -DMS5611_TEST
-CFLAGS             += -DHMC5883L_TEST -DHMC5883L_CC_MODE
+CFLAGS             += -DHMC5883L_TEST
+#CFLAGS             += -DHMC5883L_CC_MODE
 #CFLAGS             += -DMPU6050_TEST
 LDFLAGS             = -Wl,-Map,$(PROG).map
 LIBS                = -lm -lprintf_flt

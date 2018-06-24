@@ -101,6 +101,7 @@
 /** defines the data direction (writing to I2C device) in i2c_start(),i2c_rep_start() */
 #define I2C_WRITE   0
 
+
 /**
  @brief initialize the I2C master interace. Need to be called only once 
  @param  void
@@ -108,12 +109,14 @@
  */
 extern void i2c_init(void);
 
+
 /** 
  @brief Terminates the data transfer and releases the I2C bus 
  @param void
  @return none
  */
 extern void i2c_stop(void);
+
 
 /** 
  @brief Issues a start condition and sends address and transfer direction 
@@ -124,6 +127,7 @@ extern void i2c_stop(void);
  */
 extern unsigned char i2c_start(unsigned char addr);
 
+
 /**
  @brief Issues a repeated start condition and sends address and transfer direction 
 
@@ -133,6 +137,7 @@ extern unsigned char i2c_start(unsigned char addr);
  */
 extern unsigned char i2c_rep_start(unsigned char addr);
 
+
 /**
  @brief Issues a start condition and sends address and transfer direction 
    
@@ -141,6 +146,7 @@ extern unsigned char i2c_rep_start(unsigned char addr);
  @return   none
  */
 extern void i2c_start_wait(unsigned char addr);
+
  
 /**
  @brief Send one byte to I2C device
@@ -149,6 +155,7 @@ extern void i2c_start_wait(unsigned char addr);
  @retval   1 write failed
  */
 extern unsigned char i2c_write(unsigned char data);
+
 
 /**
  @brief    read one byte from the I2C device, request more data from device 
@@ -174,14 +181,27 @@ extern unsigned char i2c_readNak(void);
 extern unsigned char i2c_read(unsigned char ack);
 #define i2c_read(ack)  (ack) ? i2c_readAck() : i2c_readNak(); 
 
-/** 
- @brief    send command 
- 
- @param    addr: device address 
-           cmd: device command 
 
- @return   0: fail, 1: success
- */
-extern unsigned int i2c_send(char addr, char cmd);
 /**@}*/
+
+extern unsigned int i2c_send(char addr, char cmd);
+
+
+int8_t i2c_readBytes(uint8_t dev, uint8_t regAddr, uint8_t length, uint8_t *data);
+int8_t i2c_readByte(uint8_t dev, uint8_t regAddr, uint8_t *data);
+
+void i2c_writeBytes(uint8_t dev, uint8_t regAddr, uint8_t length, uint8_t* data);
+void i2c_writeByte(uint8_t dev, uint8_t regAddr, uint8_t data);
+
+int8_t i2c_readBits(uint8_t dev, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t *data);
+int8_t i2c_readBit(uint8_t dev, uint8_t regAddr, uint8_t bitNum, uint8_t *data);
+
+void i2c_writeBits(uint8_t dev, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data);
+void i2c_writeBit(uint8_t dev, uint8_t regAddr, uint8_t bitNum, uint8_t data);
+
+/*
+ * write word/words to chip register (2 x length  bytes)
+ */
+void i2c_writeWords(uint8_t dev, uint8_t regAddr, uint8_t length, uint16_t* data);
+
 #endif

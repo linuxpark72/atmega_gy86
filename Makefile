@@ -13,10 +13,10 @@ $(PROG).elf: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o  $@  $^  $(LIBS)
 
 clean:
-	rm -rf *.o $(PROG).elf *.eps *.png *.pdf *.bak tags
+	rm -rf *.o $(PROG).elf *.eps *.png *.pdf *.bak
 	rm -rf *.lst *.map $(EXTRA_CLEAN_FILES)
 
-load: clean $(PROG).bin 
+load: $(PROG).bin 
 	$(LOADER) -p $(MCU_TARGET) -c $(ISP_PROG_TYPE) -P $(ISP_DEV_NAME) -U flash:w:$(PROG).bin:r
 
 tags:

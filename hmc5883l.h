@@ -8,10 +8,11 @@
 #ifndef _HMC5883L_
 #define _HMC5883L_
 
+//#define HMC5883L_ADDR  0x1E
 #define HMC5883L_ADDR  0x3C
 
-#define HMC5883L_WRITE 0x3C
-#define HMC5883L_READ  0x3D
+#define HMC5883L_WRITE (HMC5883L_ADDR + I2C_WRITE)
+#define HMC5883L_READ  (HMC5883L_ADDR + I2C_READ)
 
 /*
  * Register Address (8bits)
@@ -144,6 +145,7 @@
   default [  (0) |  (0)  |  (0)  |  (0)  |  (0) |  (0)  |LOCK(0) | RDY(0) ]
 
  ***********************************************************************************/
+#define HMC5883L_SR_READ      HMC5883L_ADDR_SR + I2C_READ
 #define SR_LOCK_SHIFT 1
 #define SR_RDY_SHIFT  0
 

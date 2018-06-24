@@ -5,6 +5,7 @@
  * Created : Sun Dec 10 KST 2017
  * Author  : jeho park<linuxpark@gmail.com>
  */
+#define F_CPU 16000000L
 #include <util/delay.h>
 #include <math.h>
 #include "i2c.h"
@@ -104,24 +105,12 @@ static unsigned int cmd_prom(char coef_num)
 	return rC;
 }
 
-unsigned int ms5611_get_coeffs(unsigned int C[]) {
-	int i;
-
-	for (i = 0; i < 8; i++) {
-		C[i] = cmd_prom(i);    // read coefficients
-		if (!C[i])
-			return C[i];
-	}
-
-	return 1;
-}
-
 //********************************************************
 //! @brief calculate the CRC code
 //!
 //! @return crc code
 //********************************************************
-unsigned char ms5611_cal_crc4(unsigned int n_prom[])
+unsigned char ms5611_crc4(unsigned int n_prom[])
 {
 	int cnt;                            // simple counter
 	unsigned int n_rem;                 // crc reminder
@@ -149,101 +138,62 @@ unsigned char ms5611_cal_crc4(unsigned int n_prom[])
 	}
 
 	n_rem = (0x000F & (n_rem >> 12)); // final 4-bit reminder is CRC code
+	printf("-----> CRC(0x%x)\r\n", n_rem);
 	n_prom[7] = crc_read;      // restore the crc_read to its original place
 	return (n_rem ^ 0x0);
 }
 
-unsigned int ms5611_get_pt(unsigned int C[], double *p, double *t) {
+int ms5611_test() {
+#if defined(MS5611_TEST)
+	//unsigned int n_prom[8]; // calibration coefficients
+	unsigned int n_prom[8]; // calibration coefficients
+	//unsigned int n_prom[] = {0x3132,0x3334,0x3536,0x3738,0x3940,0x4142,0x4344,0x4500};
 	unsigned long D1; // ADC value of the pressure conversion
 	unsigned long D2; // ADC value of the temperature conversion
+	double P;               // compensated pressure value
+	double T;               // compensated temperature value
 	double dT; // difference between actual and measured temperature
 	double OFF; // offset at actual temperature
 	double SENS; // sensitivity at actual temperature
-
-	D1 = D2 = 0; 
-	D2 = cmd_adc(CMD_ADC_D2+CMD_ADC_4096);      // read D2
-	if (!D2)
-		return 0;
-	D1 = cmd_adc(CMD_ADC_D1+CMD_ADC_4096);      // read D1
-	if (!D1)
-		return 0;
-
-	// calcualte 1st order pressure and
-	// temperature (MS5607 1st order algorithm)
-	//dT = D2 - C[5] * pow(2,8);
-	dT = D2 - ((uint64_t) C[5] << 8);
-	//OFF = C[2] * pow(2,17) + dT * C[4]/pow(2,6);
-	OFF = (uint64_t)C[2] * pow(2,17) + dT * (uint64_t)C[4]/pow(2,6);
-	//SENS = C[1] * pow(2,16) + dT * C[3]/pow(2,7);
-	SENS = (uint64_t)C[1] * pow(2,16) + dT * (uint64_t)C[3]/pow(2,7);
-
-	dprintf("-------------> dT: %7.4f\n", dT);
-	//*t = (2000 + (dT*C[6])/pow(2,23))/100;
-	*t = (2000 + (dT * (uint64_t)C[6])/pow(2,23))/100;
-	//*p = (((D1*SENS)/pow(2,21) -OFF)/pow(2,15))/100;
-	*p = (((D1*SENS)/pow(2,21) -OFF)/pow(2,15))/100;
-
-	return 1;
-}
-
-#if defined(MS5611_TEST)
-static int sm2tc(int x) {
-  int m = x >> (sizeof(int) * 8 - 1);
-  return (~m & x) | (((x & 0x8000) - x) & m);
-}
-#endif
-
-int ms5611_test() {
-#if defined(MS5611_TEST)
-	unsigned int n_prom[8]; // calibration coefficients
-	double P;               // compensated pressure value
-	double T;               // compensated temperature value
 	unsigned char n_crc;  // crc value of the prom
 	unsigned int ret;
 	int i;
 
-	printf("\n%s initialized...\n", __FUNCTION__);
+	printf("\n%s initialized...\r\n", __FUNCTION__);
 	ret = ms5611_reset();              // reset IC
 	if (!ret) {
-		printf("failed to ms5611_reset(): %d\n", ret);
+		printf("failed to ms5611_reset(): %d\r\n", ret);
 		return 0;
 	}
-
-	ret = ms5611_get_coeffs(n_prom);   // get coefficient 
-	if (!ret) {
-		printf("failed to ms5611_get_coeffs(): %d\n", ret);
-		return 0;
-	}
-
-	/* TODO: these two coefficient are always negative so 
-	 * i take these 2's complement */
-#if 1
-	n_prom[1] = sm2tc(n_prom[1]);
-	n_prom[2] = sm2tc(n_prom[2]);
-	n_prom[7] = sm2tc(n_prom[7]);
+#if 0
+	for (i=0;i<8;i++){ n_prom[i] = cmd_prom(i);} // read coefficients
 #endif
-	/* TODO: verify crc */
-	n_crc = ms5611_cal_crc4(n_prom);  /* calculate the CRC */
+	n_crc = ms5611_crc4(n_prom);  /* calculate the CRC */
 
-	/* TODO: remove this loop */
-	for(i = 0; i < 10; i++) {
-		/*  calculate P, T with the coefficients */
-		ret = ms5611_get_pt(n_prom, &P, &T);
-		if (!ret) {
-			printf("failed to ms5611_get_pt(): %d\n", ret);
-			continue;
-		}
+	for(;;) {
+
+		D2 = cmd_adc(CMD_ADC_D2+CMD_ADC_4096);      // read D2
+		D1 = cmd_adc(CMD_ADC_D1+CMD_ADC_4096);      // read D1
 		
-		printf("n0[%d], 1[%d], 2[%d], 3[%d]\n"
-			   "4[%d], 5[%d], 6[%d], 7[%d]\n"
-				">>> CRC(0x%x), Temp(%5.2f), Press(%7.2f mbar)\n\n",
+		// calcualte 1st order pressure and
+		// temperature (MS5607 1st order algorithm)
+		dT = D2 - ((uint64_t)n_prom[5] << 8);
+		OFF = n_prom[2] * pow(2,17) + dT * n_prom[4]/pow(2,6);
+		SENS = n_prom[1] * pow(2,16) + dT * n_prom[3]/pow(2,7);
+
+		T = (2000 + (dT * n_prom[6])/pow(2,23))/100;
+		P = (((D1*SENS)/pow(2,21) -OFF)/pow(2,15))/100;
+
+		//printf("n0[%x], n1[%x], n2[%x], n3[%x] n4[%x], n5[%x], n6[%x], n7[%x]\r\n"
+		printf("n0[%d], n1[%d], n2[%d], n3[%d] n4[%d], n5[%d], n6[%d], n7[%d]\r\n"
+				">>> CRC(%d), dT(%5.2f), Temp(%5.2f), Press(%5.2f mbar)\r\n",
 				n_prom[0], n_prom[1], n_prom[2], n_prom[3], 
 				n_prom[4], n_prom[5], n_prom[6], n_prom[7], 
-				n_crc, T,  P);
+				n_crc, dT, T,  P);
 		_delay_ms(1000);
 	}
 
-	printf("%s exit...\n", __FUNCTION__);
+	printf("%s exit...\r\n", __FUNCTION__);
 #endif
-	return 0;
+	return 1;
 }

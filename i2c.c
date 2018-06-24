@@ -21,14 +21,23 @@
 **************************************************************************/
 #include <inttypes.h>
 #include <compat/twi.h>
+#include <util/delay.h>
 #include "i2c.h"
-//#include "uart.h"
 
-#ifndef SCL_CLOCK
-/* I2C clock in Hz */
-#warn "define SCL_CLOCK in Makefile.tmpl"
-#define SCL_CLOCK  100000L /* 100Khz */
+
+/* define CPU frequency in Mhz here if not defined in Makefile */
+#ifndef F_CPU
+/*  jeho */
+//#define F_CPU 4000000UL
+#define F_CPU 16000000UL
 #endif
+
+/* I2C clock in Hz */
+#define SCL_CLOCK  100000L
+//#define SCL_CLOCK  400000L
+
+/* I2C timer max delay */
+#define I2C_TIMER_DELAY 0xFF
 
 /*************************************************************************
  Initialization of the I2C bus interface. Need to be called only once
@@ -49,12 +58,17 @@ void i2c_init(void)
 *************************************************************************/
 unsigned char i2c_start(unsigned char address)
 {
+	uint32_t  i2c_timer = 0;
     uint8_t   twst;
 
 	// send START condition
 	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 
-	while(!(TWCR & (1<<TWINT)));
+	// wait until transmission completed
+	i2c_timer = I2C_TIMER_DELAY;
+	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
+	if(i2c_timer == 0)
+		return 1;
 
 	// check value of TWI Status Register. Mask prescaler bits.
 	twst = TW_STATUS & 0xF8;
@@ -64,7 +78,11 @@ unsigned char i2c_start(unsigned char address)
 	TWDR = address;
 	TWCR = (1<<TWINT) | (1<<TWEN);
 
-	while(!(TWCR & (1<<TWINT)));
+	// wail until transmission completed and ACK/NACK has been received
+	i2c_timer = I2C_TIMER_DELAY;
+	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
+	if(i2c_timer == 0)
+		return 1;
 
 	// check value of TWI Status Register. Mask prescaler bits.
 	twst = TW_STATUS & 0xF8;
@@ -74,6 +92,7 @@ unsigned char i2c_start(unsigned char address)
 
 }/* i2c_start */
 
+
 /*************************************************************************
  Issues a start condition and sends address and transfer direction.
  If device is busy, use ack polling to wait until device is ready
@@ -82,6 +101,7 @@ unsigned char i2c_start(unsigned char address)
 *************************************************************************/
 void i2c_start_wait(unsigned char address)
 {
+	uint32_t  i2c_timer = 0;
 	uint8_t   twst;
 
     while ( 1 )
@@ -90,7 +110,8 @@ void i2c_start_wait(unsigned char address)
 	    TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
     
     	// wait until transmission completed
-    	while(!(TWCR & (1<<TWINT)));
+	    i2c_timer = I2C_TIMER_DELAY;
+    	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
 
     	// check value of TWI Status Register. Mask prescaler bits.
     	twst = TW_STATUS & 0xF8;
@@ -101,7 +122,8 @@ void i2c_start_wait(unsigned char address)
     	TWCR = (1<<TWINT) | (1<<TWEN);
     
     	// wail until transmission completed
-    	while(!(TWCR & (1<<TWINT)));
+    	i2c_timer = I2C_TIMER_DELAY;
+    	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
     
     	// check value of TWI Status Register. Mask prescaler bits.
     	twst = TW_STATUS & 0xF8;
@@ -111,7 +133,8 @@ void i2c_start_wait(unsigned char address)
 	        TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 	        
 	        // wait until stop condition is executed and bus released
-	        while((TWCR & (1<<TWSTO)));
+	        i2c_timer = I2C_TIMER_DELAY;
+	        while((TWCR & (1<<TWSTO)) && i2c_timer--);
 	        
     	    continue;
     	}
@@ -142,12 +165,14 @@ unsigned char i2c_rep_start(unsigned char address)
 *************************************************************************/
 void i2c_stop(void)
 {
+	uint32_t  i2c_timer = 0;
 
     /* send stop condition */
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 	
 	// wait until stop condition is executed and bus released
-	while((TWCR & (1<<TWSTO)));
+	i2c_timer = I2C_TIMER_DELAY;
+	while((TWCR & (1<<TWSTO)) && i2c_timer--);
 
 }/* i2c_stop */
 
@@ -159,8 +184,9 @@ void i2c_stop(void)
   Return:   0 write successful 
             1 write failed
 *************************************************************************/
-unsigned char i2c_write(unsigned char data )
+unsigned char i2c_write( unsigned char data )
 {	
+	uint32_t  i2c_timer = 0;
     uint8_t   twst;
     
 	// send data to the previously addressed device
@@ -168,7 +194,10 @@ unsigned char i2c_write(unsigned char data )
 	TWCR = (1<<TWINT) | (1<<TWEN);
 
 	// wait until transmission completed
-	while(!(TWCR & (1<<TWINT)));
+	i2c_timer = I2C_TIMER_DELAY;
+	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
+	if(i2c_timer == 0)
+		return 1;
 
 	// check value of TWI Status Register. Mask prescaler bits
 	twst = TW_STATUS & 0xF8;
@@ -185,8 +214,14 @@ unsigned char i2c_write(unsigned char data )
 *************************************************************************/
 unsigned char i2c_readAck(void)
 {
+	uint32_t  i2c_timer = 0;
+
 	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWEA);
-	while(!(TWCR & (1<<TWINT)));
+	i2c_timer = I2C_TIMER_DELAY;
+	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
+	if(i2c_timer == 0)
+		return 0;
+
     return TWDR;
 
 }/* i2c_readAck */
@@ -199,30 +234,169 @@ unsigned char i2c_readAck(void)
 *************************************************************************/
 unsigned char i2c_readNak(void)
 {
+	uint32_t  i2c_timer = 0;
+
 	TWCR = (1<<TWINT) | (1<<TWEN);
-	while(!(TWCR & (1<<TWINT)));
+	i2c_timer = I2C_TIMER_DELAY;
+	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
+	if(i2c_timer == 0)
+		return 0;
+	
     return TWDR;
 
 }/* i2c_readNak */
 
-/********************************************************
- @brief send command using I2C hardware interface
-
- @return 0: fail, 1: success
-********************************************************/
 unsigned int i2c_send(char addr, char cmd)
 {
     unsigned char ret;
 
-	ret = i2c_start(addr + I2C_WRITE /* 0 */); // set device address and write mode
-	if ( ret ) {
-		//failed to issue start condition, possibly no device found */
-		i2c_stop();
-		return 0;
-	} else {
-		// issuing start condition ok, device accessible
+    ret = i2c_start(addr + I2C_WRITE /* 0 */); // set device address and write mode
+    if ( ret ) {
+        //failed to issue start condition, possibly no device found */
+        i2c_stop();
+        return 0;
+    } else {
+        // issuing start condition ok, device accessible
         ret = i2c_write(cmd);
         i2c_stop();
-		return 1;
+        return 1;
+    }
+}
+
+/*
+ * read bytes from chip register
+ */
+int8_t i2c_readBytes(uint8_t dev, uint8_t regAddr, uint8_t length, uint8_t *data) {
+    uint8_t i = 0;
+    int8_t count = 0;
+
+    if(length > 0) {
+        //request register
+        i2c_start(dev | I2C_WRITE);
+        i2c_write(regAddr);
+        _delay_us(10);
+        //read data
+        i2c_start(dev | I2C_READ);
+        for(i=0; i<length; i++) {
+            count++;
+            if(i==length-1)
+                data[i] = i2c_readNak();
+            else
+                data[i] = i2c_readAck();
+        }
+        i2c_stop();
+    }
+    return count;
+}
+
+/*
+ * read 1 byte from chip register
+ */
+int8_t i2c_readByte(uint8_t dev, uint8_t regAddr, uint8_t *data) {
+    return i2c_readBytes(dev, regAddr, 1, data);
+}
+
+/*
+ * write bytes to chip register
+ */
+void i2c_writeBytes(uint8_t dev, uint8_t regAddr, uint8_t length, uint8_t* data) {
+    if(length > 0) {
+        //write data
+        i2c_start(dev | I2C_WRITE);
+        i2c_write(regAddr); //reg
+        for (uint8_t i = 0; i < length; i++) {
+            i2c_write((uint8_t) data[i]);
+        }
+        i2c_stop();
+    }
+}
+
+/*
+ * write 1 byte to chip register
+ */
+void i2c_writeByte(uint8_t dev, uint8_t regAddr, uint8_t data) {
+    return i2c_writeBytes(dev, regAddr, 1, &data);
+}
+
+/*
+ * read bits from chip register
+ */
+int8_t i2c_readBits(uint8_t dev, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t *data) {
+    // 01101001 read byte
+    // 76543210 bit numbers
+    //    xxx   args: bitStart=4, length=3
+    //    010   masked
+    //   -> 010 shifted
+    int8_t count = 0;
+    if(length > 0) {
+        uint8_t b;
+        if ((count = i2c_readByte(dev, regAddr, &b)) != 0) {
+            uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
+            b &= mask;
+            b >>= (bitStart - length + 1);
+            *data = b;
+        }
+    }
+    return count;
+}
+
+/*
+ * read 1 bit from chip register
+ */
+int8_t i2c_readBit(uint8_t dev, uint8_t regAddr, uint8_t bitNum, uint8_t *data) {
+    uint8_t b;
+    uint8_t count = i2c_readByte(dev, regAddr, &b);
+    *data = b & (1 << bitNum);
+    return count;
+}
+
+/*
+ * write bit/bits to chip register
+ */
+void i2c_writeBits(uint8_t dev, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data) {
+    //      010 value to write
+    // 76543210 bit numbers
+    //    xxx   args: bitStart=4, length=3
+    // 00011100 mask byte
+    // 10101111 original value (sample)
+    // 10100011 original & ~mask
+    // 10101011 masked | value
+    if(length > 0) {
+        uint8_t b = 0;
+        if (i2c_readByte(dev, regAddr, &b) != 0) { //get current data
+            uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
+            data <<= (bitStart - length + 1); // shift data into correct position
+            data &= mask; // zero all non-important bits in data
+            b &= ~(mask); // zero all important bits in existing byte
+            b |= data; // combine data with existing byte
+            i2c_writeByte(dev, regAddr, b);
+        }
+    }
+}
+
+/*
+ * write one bit to chip register
+ */
+void i2c_writeBit(uint8_t dev, uint8_t regAddr, uint8_t bitNum, uint8_t data) {
+    uint8_t b;
+    i2c_readByte(dev, regAddr, &b);
+    b = (data != 0) ? (b | (1 << bitNum)) : (b & ~(1 << bitNum));
+    i2c_writeByte(dev, regAddr, b);
+}
+
+/*
+ * write word/words to chip register (2 bytes)
+ */
+void i2c_writeWords(uint8_t dev, uint8_t regAddr, uint8_t length, uint16_t* data) {
+    if(length > 0) {
+        uint8_t i = 0;
+        //write data
+        i2c_start(dev | I2C_WRITE);
+        i2c_write(regAddr); //reg
+        for (i = 0; i < length * 2; i++) {
+            i2c_write((uint8_t)(data[i++] >> 8)); // send MSB
+            i2c_write((uint8_t)data[i]);          // send LSB
+        }
+        i2c_stop();
     }
 }
