@@ -5,7 +5,20 @@
 # Created : 2017. 12. 10
 # Author  : jeho park<linuxpark@gmail.com>
 
+# DEV_OS: MAC, LINUX
+DEV_OS              = LINUX
 PROG                = gy86
+
+### MAC OSX
+ifeq ($(DEV_OS),MAC)
+CROSS_COMPILER	    = /opt/local/bin
+CTAGS               = /usr/local/Cellar/ctags/5.8_1/bin/ctags
+else ifeq ($(DEV_OS),LINUX)
+### LINUX
+CROSS_COMPILER	    = /usr/bin
+CTAGS               = /usr/bin/ctags
+endif
+
 ### check 1. uart device file.
 ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
 ### check 2. isp device.
@@ -15,15 +28,16 @@ OBJS                = i2c.o uart.o ms5611.o hmc5883l.o main.o
 MCU_TARGET          = atmega128
 OPTIMIZE            = -O1
 OPTIMIZE           += -D__OPTIMIZE__
-CC                  = /opt/local/bin/avr-gcc 
-OBJCOPY             = /opt/local/bin/avr-objcopy
-OBJDUMP             = /opt/local/bin/avr-objdump 
-LOADER              = /opt/local/bin/avrdude
+
+
+CC                  = ${CROSS_COMPILER}/avr-gcc 
+OBJCOPY             = ${CROSS_COMPILER}/avr-objcopy
+OBJDUMP             = ${CROSS_COMPILER}/avr-objdump
+LOADER              = ${CROSS_COMPILER}/avrdude
 INC                 = -I.
-# CFLAGS
-CFLAGS             = -g -Wall -gdwarf-2
+# CFLAGS CFLAGS     = -g -Wall -gdwarf-2
 CFLAGS             += -std=gnu99 -Wl,-u,vfprintf
-CFLAGS             += -Wshift-count-overflow
+#CFLAGS             += -Wshift-count-overflow
 CFLAGS             += $(INC)
 CFLAGS             += $(OPTIMIZE)
 CFLAGS             += -mmcu=$(MCU_TARGET)
@@ -36,4 +50,5 @@ LDFLAGS             = -Wl,-Map,$(PROG).map
 LIBS                = -lm -lprintf_flt
 EXTRA_CLEAN_FILES   = *.hex *.bin *.srec
 # $brew install ctags
-CTAGS               = /usr/local/Cellar/ctags/5.8_1/bin/ctags
+#CTAGS               = /usr/local/Cellar/ctags/5.8_1/bin/ctags
+CTAGS               = /usr/bin/ctags
