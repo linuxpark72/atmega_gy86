@@ -27,7 +27,7 @@ JeHo Park<linuxpark@gmail.com>
 
 2. howto setup 
   
-   2.1.  development host pc: 
+   2.1.  
 
        2.1.1. install port 
 
@@ -46,3 +46,9 @@ JeHo Park<linuxpark@gmail.com>
 
             avr-objcopy -j .text -j .data -O binary ${prog_name}.elf  ${prog_name}.bin
             avrdude -p atmega128 -c stk500 -P ${dev_name} -U flash:w:${prog_name}.bin:r
+
+
+   2.2. linux
+
+   $ sudo apt-get install avrdude binutils-avr gcc-avr gdb-avr avr-libc
+
