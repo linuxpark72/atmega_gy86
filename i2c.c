@@ -38,15 +38,24 @@
 /* I2C timer max delay */
 #define I2C_TIMER_DELAY 0xFF
 
+#define I2C_SCL PD0
+#define I2C_SDA PD1
 /*************************************************************************
  Initialization of the I2C bus interface. Need to be called only once
 *************************************************************************/
 void i2c_init(void)
 {
+  DDRC |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
+  DDRC |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
+
   /* initialize TWI clock: 100 kHz clock, TWPS = 0 => prescaler = 1 */
-  
+#if 0
   TWSR = 0;                         /* no prescaler */
   TWBR = ((F_CPU/SCL_CLOCK)-16)/2;  /* must be > 10 for stable operation */
+#else
+  TWBR = 32; // I2C 클록 주파수 설정 200KHz
+#endif
+  TWCR = (1 << TWEN) | (1 << TWEA); // I2C 활성화, ACK 허용
 
 }/* i2c_init */
 

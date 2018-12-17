@@ -145,9 +145,7 @@ unsigned char ms5611_crc4(unsigned int n_prom[])
 
 int ms5611_test() {
 #if defined(MS5611_TEST)
-	//unsigned int n_prom[8]; // calibration coefficients
 	unsigned int n_prom[8]; // calibration coefficients
-	//unsigned int n_prom[] = {0x3132,0x3334,0x3536,0x3738,0x3940,0x4142,0x4344,0x4500};
 	unsigned long D1; // ADC value of the pressure conversion
 	unsigned long D2; // ADC value of the temperature conversion
 	double P;               // compensated pressure value
