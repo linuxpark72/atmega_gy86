@@ -14,6 +14,8 @@
 #include "ms5611.h"
 #include "hmc5883l.h"
 
+#define I2C_SCL PD0
+#define I2C_SDA PD1
 
 int main(void) {
 	stdout = &OUTPUT;

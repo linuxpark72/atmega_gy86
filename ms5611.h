@@ -12,10 +12,6 @@
 #define FALSE           0
 
 #define MS5611_ADDR  0XEE
-#if 0
-#define ADDR_W       MS5611_ADDR + I2C_WRITE
-#define ADDR_R       MS5611_ADDR + I2C_READ
-#endif
 #define MS5611_ADDR_W MS5611_ADDR + I2C_WRITE
 #define MS5611_ADDR_R MS5611_ADDR + I2C_READ
 

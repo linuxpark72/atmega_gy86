@@ -44,7 +44,7 @@ unsigned int ms5611_reset(void)
 //!
 //! @return 24bit result
 //********************************************************
-static unsigned long cmd_adc(char cmd) 
+unsigned long cmd_adc(char cmd) 
 {
 	unsigned int ret;
 	unsigned long temp=0;
@@ -84,12 +84,12 @@ static unsigned long cmd_adc(char cmd)
 //!
 //! @return coefficient
 //********************************************************
-static unsigned int cmd_prom(char coef_num)
+unsigned int cmd_prom(char coef_num)
 {
 	unsigned int ret;
 	unsigned int rC = 0;
 
-	ms5611_i2c_send(CMD_PROM_RD+coef_num*2);
+	ms5611_i2c_send(CMD_PROM_RD + coef_num * 2);
 	ret = i2c_start(MS5611_ADDR_R);
 	if (ret) {
 		//failed to issue start condition, possibly no device found
@@ -110,7 +110,7 @@ static unsigned int cmd_prom(char coef_num)
 //!
 //! @return crc code
 //********************************************************
-unsigned char ms5611_crc4(unsigned int n_prom[])
+unsigned char ms5611_crc4(unsigned int C[])
 {
 	int cnt;                            // simple counter
 	unsigned int n_rem;                 // crc reminder
@@ -118,14 +118,14 @@ unsigned char ms5611_crc4(unsigned int n_prom[])
 	unsigned char  n_bit;
 
 	n_rem = 0x00;
-	crc_read= n_prom[7];                //save read CRC
-	n_prom[7] = (0xFF00 & (n_prom[7])); //CRC byte is replaced by 0
+	crc_read = C[7];                //save read CRC
+	C[7] = (0xFF00 & (C[7])); //CRC byte is replaced by 0
 	for (cnt = 0; cnt < 16; cnt++)      // operation is performed on bytes
 	{
 		if (cnt%2==1) 
-			n_rem ^= (unsigned short) ((n_prom[cnt>>1]) & 0x00FF);
+			n_rem ^= (unsigned short) ((C[cnt>>1]) & 0x00FF);
 		else 
-			n_rem ^= (unsigned short) (n_prom[cnt>>1]>>8);
+			n_rem ^= (unsigned short) (C[cnt>>1]>>8);
 
 		for (n_bit = 8; n_bit > 0; n_bit--)
 		{
@@ -139,13 +139,14 @@ unsigned char ms5611_crc4(unsigned int n_prom[])
 
 	n_rem = (0x000F & (n_rem >> 12)); // final 4-bit reminder is CRC code
 	printf("-----> CRC(0x%x)\r\n", n_rem);
-	n_prom[7] = crc_read;      // restore the crc_read to its original place
+	C[7] = crc_read;      // restore the crc_read to its original place
 	return (n_rem ^ 0x0);
 }
 
 int ms5611_test() {
 #if defined(MS5611_TEST)
-	unsigned int n_prom[8]; // calibration coefficients
+	unsigned int C[8]; // calibration coefficients
+	//unsigned int C[8] = {0x3132, 0x3334, 0x3536, 0x3738, 0x3940, 0x4142, 0x4344, 0x4500}; // calibration coefficients
 	unsigned long D1; // ADC value of the pressure conversion
 	unsigned long D2; // ADC value of the temperature conversion
 	double P;               // compensated pressure value
@@ -157,37 +158,41 @@ int ms5611_test() {
 	unsigned int ret;
 	int i;
 
+	D1 = D2 = 0;
 	printf("\n%s initialized...\r\n", __FUNCTION__);
 	ret = ms5611_reset();              // reset IC
 	if (!ret) {
 		printf("failed to ms5611_reset(): %d\r\n", ret);
 		return 0;
 	}
-#if 0
-	for (i=0;i<8;i++){ n_prom[i] = cmd_prom(i);} // read coefficients
+
+	// read coefficients
+#if 1
+	for (i=0;i<8;i++) { 
+	  C[i] = cmd_prom(i);
+	}
 #endif
-	n_crc = ms5611_crc4(n_prom);  /* calculate the CRC */
+	C[7] = 0xFF00 & C[7];
+	n_crc = ms5611_crc4(C);  /* calculate the CRC */
 
 	for(;;) {
 
-		D2 = cmd_adc(CMD_ADC_D2+CMD_ADC_4096);      // read D2
-		D1 = cmd_adc(CMD_ADC_D1+CMD_ADC_4096);      // read D1
+		D2 = cmd_adc(CMD_ADC_D2+CMD_ADC_256);      // read D2
+		D1 = cmd_adc(CMD_ADC_D1+CMD_ADC_256);      // read D1
 		
 		// calcualte 1st order pressure and
 		// temperature (MS5607 1st order algorithm)
-		dT = D2 - ((uint64_t)n_prom[5] << 8);
-		OFF = n_prom[2] * pow(2,17) + dT * n_prom[4]/pow(2,6);
-		SENS = n_prom[1] * pow(2,16) + dT * n_prom[3]/pow(2,7);
+		dT = D2 - C[5] * pow(2, 8);
+		OFF = C[2] * pow(2, 17) + dT * C[4]/pow(2,6);
+		SENS = C[1] * pow(2, 16) + dT * C[3]/pow(2,7);
 
-		T = (2000 + (dT * n_prom[6])/pow(2,23))/100;
-		P = (((D1*SENS)/pow(2,21) -OFF)/pow(2,15))/100;
+		T = (2000 + (dT * C[6])/pow(2,23))/100;
+		P = (((D1*SENS)/pow(2,21) -OFF)/ pow(2,15))/100;
 
-		//printf("n0[%x], n1[%x], n2[%x], n3[%x] n4[%x], n5[%x], n6[%x], n7[%x]\r\n"
-		printf("n0[%d], n1[%d], n2[%d], n3[%d] n4[%d], n5[%d], n6[%d], n7[%d]\r\n"
-				">>> CRC(%d), dT(%5.2f), Temp(%5.2f), Press(%5.2f mbar)\r\n",
-				n_prom[0], n_prom[1], n_prom[2], n_prom[3], 
-				n_prom[4], n_prom[5], n_prom[6], n_prom[7], 
-				n_crc, dT, T,  P);
+		printf("C0[%d], C1[%d], C2[%d], C3[%d], C4[%d], C5[%d], C6[%d], C7[%d]\r\n"
+				">>> D1(%ld), D2(%ld), CRC(%d), dT(%5.2f), Temp(%5.2f), Press(%.f mbar)\r\n",
+				C[0], C[1], C[2], C[3],	C[4], C[5], C[6], C[7], 
+				D1, D2, n_crc, dT, T,  P);
 		_delay_ms(1000);
 	}
 
