@@ -1,0 +1,23 @@
+
+1. FACTORY CALIBRATION
+
+	ms5611.pdf, 5
+
+	Every module is individually factory calibrated at two temperatures and two pressures. As a result, 6 coefficients necessary to compensate for process variations and temperature variations are calculated and stored in the 128-bit PROM of each module. These bits (partitioned into 6 coefficients) must be read by the microcontroller software and used in the program converting D1 and D2 into compensated pressure and temperature values.
+
+
+
+2. I2C MODE
+
+	ms5611.pdf, 6
+
+	COMMANDS
+
+	The MS5611-01BA has only five basic commands:
+	1. Reset
+	2. Read PROM (128 bit of calibration words)
+	3. D1 conversion
+	4. D2 conversion
+	5. Read ADC result (24 bit pressure / temperature
+
+
