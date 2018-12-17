@@ -25,9 +25,9 @@ JeHo Park<linuxpark@gmail.com>
       sda(D1: 26) <--->  sda
 
 
-2. howto setup 
+2. howto install, setup sw development environment
   
-   2.1.  
+   2.1. Mac 
 
        2.1.1. install port 
 
