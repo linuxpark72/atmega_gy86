@@ -26,6 +26,10 @@ JeHo Park<linuxpark@gmail.com>
 
 
 2. howto install, setup sw development environment
+
+   refer to dev_env_setup page or the infomation below 
+
+
   
    2.1. Mac 
 
@@ -50,5 +54,5 @@ JeHo Park<linuxpark@gmail.com>
 
    2.2. linux
 
-   $ sudo apt-get install avrdude binutils-avr gcc-avr gdb-avr avr-libc
+		$ sudo apt-get install avrdude binutils-avr gcc-avr gdb-avr avr-libc
 
