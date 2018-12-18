@@ -46,7 +46,7 @@
 void i2c_init(void)
 {
   /* i2c in/out port */
-  DDRD |= _BV(1 << I2C_SCL); // SCL 핀을 출력으로 설정
+  DDRD |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
   DDRD |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
 
   /* initialize TWI clock: 200 kHz clock, TWPS = 0 => prescaler = 1 */
