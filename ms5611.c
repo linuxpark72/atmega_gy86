@@ -149,24 +149,30 @@ unsigned char ms5611_crc4(unsigned int C[])
 int ms5611_test() {
 #if defined(MS5611_TEST)
 	uint16_t C[8]; // calibration coefficients
-	uint32_t D1;
-	uint32_t D2;
+	uint32_t D1 = 0;
+	uint32_t D2 = 0;
 	float P;               // compensated pressure value
-	float T;               // compensated temperature value
-	float dT; // difference between actual and measured temperature
-	float OFF; // offset at actual temperature
-	float SENS; // sensitivity at actual temperature
+	float dT;              // difference between actual and measured temperature
 	unsigned char n_crc;  // crc value of the prom
 	unsigned int ret;
 	int i;
+    
+	/* 1 order compensation */	
+	float T;               // compensated temperature value
+	float OFF;             // offset at actual temperature
+	float SENS;            // sensitivity at actual temperature
 
-	D1 = D2 = 0;
-	printf("\n%s initialized...\r\n", __FUNCTION__);
+    /* 2 order compensation */	
+	float T2;              // compensated temperature value
+	float OFF2;            // offset at actual temperature
+	float SENS2;           // sensitivity at actual temperature
+
 	ret = ms5611_reset();              // reset IC
 	if (!ret) {
 		printf("failed to ms5611_reset(): %d\r\n", ret);
 		return 0;
 	}
+	printf("\n%s ms5611 initialized...\r\n", __FUNCTION__);
 
 	// read coefficients
 	for (i = 0; i < 8; i++) {
@@ -180,19 +186,45 @@ int ms5611_test() {
 		D1 = cmd_adc(CMD_ADC_D1+CMD_ADC_4096);      // read D2
 		D2 = cmd_adc(CMD_ADC_D2+CMD_ADC_4096);      // read D1
 		
-		// calcualte 1st order pressure and
-		// temperature (MS5607 1st order algorithm)
 		dT = D2 - (C[5] * pow(2, 8));
+		// calcualte 1st order pressure and
+		// temperature (MS5611-01BA03 1st order algorithm)
 		T = (2000 + (dT * C[6])/pow(2,23))/100;
 		OFF = ((C[2] * pow(2, 16)) + ((C[4] * dT) / pow(2,7)));
 		SENS = ((C[1] * pow(2, 15)) + ((C[3] * dT)/pow(2,8)));
 
 		P = (((D1*SENS/pow(2,21)) - OFF) / pow(2,15))/100;
 
-		printf("C0[%u], C1[%u], C2[%u], C3[%u], C4[%u], C5[%u], C6[%u], C7[%u]\r\n"
-				">>> D1(%lu), D2(%lu), CRC(%d), dT(%5.2f), Temp(%3.2f), Press(%5.2f mbar)\r\n\r\n",
-				C[0], C[1], C[2], C[3],	C[4], C[5], C[6], C[7], 
-				D1, D2, n_crc, dT, T,  P);
+		printf("C0[%u], C1[%u], C2[%u], C3[%u], C4[%u], C5[%u], C6[%u], C7[%u] D1(%lu), D2(%lu), CRC(%d), dT(%5.2f)\r\n"
+			   "1'st compensation:   Temperature(%3.4f), Press(%5.4f mbar)\r\n",
+			   C[0], C[1], C[2], C[3],	C[4], C[5], C[6], C[7], 
+			   D1, D2, n_crc, dT, T,  P);
+
+		// calcualte 2st order pressure and 
+		// temperature (MS5611-01BA03 2st order algorithm)
+		if (T < 20) {
+		  T2 = pow(dT, 2) / pow(2, 31);
+		  OFF2 = (5 * pow((T - 2000), 2))/2;
+		  SENS2 = (5 * pow((T - 2000), 2))/4;
+
+		  if (T < -15) {
+			OFF2 = OFF2 + 7 * pow((T + 1500), 2);
+			SENS2 = SENS2 + (11 * pow((T + 1500), 2))/2;
+		  }
+
+		} else {
+		  T2 = 0;
+		  OFF2 = 0;
+		  SENS2 = 0;
+		}
+
+		T = T - T2;
+		OFF = OFF - OFF2;
+		SENS = SENS - SENS2;
+
+		P = (((D1*SENS/pow(2,21)) - OFF) / pow(2,15))/100;
+		printf("2'st compensation:   Temperature(%3.4f), Press(%5.4f mbar)\r\n\r\n", T, P);
+
 		_delay_ms(1000);
 	}
 
