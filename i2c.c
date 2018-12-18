@@ -46,8 +46,8 @@
 void i2c_init(void)
 {
   /* i2c in/out port */
-  DDRD |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
-  //DDRD |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
+  DDRD |= _BV(1 << I2C_SCL); // SCL 핀을 출력으로 설정
+  DDRD |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
 
   /* initialize TWI clock: 200 kHz clock, TWPS = 0 => prescaler = 1 */
   TWSR = 0;                         /* no prescaler */
@@ -67,9 +67,9 @@ unsigned char i2c_start(unsigned char address)
     uint8_t   twst;
 
 	// send START condition
-	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
+	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN) | (1<<TWEA);
 
-	// wait until transmission completed
+	// wait until transmission completed (until receive ACK)
 	i2c_timer = I2C_TIMER_DELAY;
 	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
 	if(i2c_timer == 0)
@@ -173,7 +173,7 @@ void i2c_stop(void)
 	uint32_t  i2c_timer = 0;
 
     /* send stop condition */
-	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
+	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO) | (1<<TWEA);
 	
 	// wait until stop condition is executed and bus released
 	i2c_timer = I2C_TIMER_DELAY;
