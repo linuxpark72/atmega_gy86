@@ -1,5 +1,9 @@
 
+(-)2018년 12월 18일 화요일 22시 23분 02초 KST
+  second order temperature compensation of ms5611.
 
-2018. 12. 18. (화) 15:42:33 KST
 
-https://www.avrfreaks.net/forum/format-specifier-uint32t-correct-syntax 
+(V) 2018. 12. 18. (화) 15:42:33 KST
+
+  ms5611
+  https://www.avrfreaks.net/forum/format-specifier-uint32t-correct-syntax 
