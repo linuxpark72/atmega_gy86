@@ -29,7 +29,7 @@ static unsigned int ms5611_i2c_send(char cmd)
 //********************************************************
 unsigned int ms5611_reset(void)
 {
-	unsigned int ret;
+	int ret;
 	
 	ret = ms5611_i2c_send(CMD_RESET);       // send reset sequence
 	if (!ret)
@@ -37,6 +37,35 @@ unsigned int ms5611_reset(void)
 
 	_delay_ms(3);                           // wait for the reset sequence timing
 	return 1;
+}
+
+//********************************************************
+//! @brief Read calibration coefficients
+//!
+//! @return coefficient
+//********************************************************
+uint16_t cmd_prom(int coef_num)
+{
+	int ret;
+	uint16_t hi_coef;
+	uint16_t lo_coef;
+	uint16_t coef = 0;
+
+	ms5611_i2c_send(CMD_PROM_RD + coef_num * 2);
+	ret = i2c_start(MS5611_ADDR_R);
+	if (ret) {
+		//failed to issue start condition, possibly no device found
+		i2c_stop();
+	} else {
+		//issuing start condition ok, device accessible
+		hi_coef = i2c_readAck(); // read MSB and acknowledge
+		//rC = 256 * ret;
+		coef = (hi_coef << 8);
+		lo_coef = i2c_readNak(); // read LSB and not acknowledge
+		coef |= lo_coef;
+		i2c_stop();
+	}
+	return coef;
 }
 
 //********************************************************
@@ -80,32 +109,6 @@ unsigned long cmd_adc(char cmd)
 }
 
 //********************************************************
-//! @brief Read calibration coefficients
-//!
-//! @return coefficient
-//********************************************************
-unsigned int cmd_prom(char coef_num)
-{
-	unsigned int ret;
-	unsigned int rC = 0;
-
-	ms5611_i2c_send(CMD_PROM_RD + coef_num * 2);
-	ret = i2c_start(MS5611_ADDR_R);
-	if (ret) {
-		//failed to issue start condition, possibly no device found
-		i2c_stop();
-	} else {
-		//issuing start condition ok, device accessible
-		ret = i2c_readAck(); // read MSB and acknowledge
-		rC = 256 * ret;
-		ret = i2c_readNak(); // read LSB and not acknowledge
-		rC = rC + ret;
-		i2c_stop();
-	}
-	return rC;
-}
-
-//********************************************************
 //! @brief calculate the CRC code
 //!
 //! @return crc code
@@ -145,7 +148,8 @@ unsigned char ms5611_crc4(unsigned int C[])
 
 int ms5611_test() {
 #if defined(MS5611_TEST)
-	unsigned int C[8]; // calibration coefficients
+	//unsigned int C[8]; // calibration coefficients
+	uint16_t C[8]; // calibration coefficients
 	//unsigned int C[8] = {0x3132, 0x3334, 0x3536, 0x3738, 0x3940, 0x4142, 0x4344, 0x4500}; // calibration coefficients
 	unsigned long D1; // ADC value of the pressure conversion
 	unsigned long D2; // ADC value of the temperature conversion
@@ -167,11 +171,10 @@ int ms5611_test() {
 	}
 
 	// read coefficients
-#if 1
 	for (i=0;i<8;i++) { 
 	  C[i] = cmd_prom(i);
 	}
-#endif
+	
 	C[7] = 0xFF00 & C[7];
 	n_crc = ms5611_crc4(C);  /* calculate the CRC */
 

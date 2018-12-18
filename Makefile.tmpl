@@ -6,7 +6,7 @@
 # Author  : jeho park<linuxpark@gmail.com>
 
 # DEV_OS: MAC, LINUX
-DEV_OS              = MAC
+DEV_OS              = LINUX
 PROG                = gy86
 
 ### MAC OSX
@@ -36,8 +36,7 @@ OBJDUMP             = ${CROSS_COMPILER}/avr-objdump
 LOADER              = ${CROSS_COMPILER}/avrdude
 INC                 = -I.
 # CFLAGS CFLAGS     = -g -Wall -gdwarf-2
-CFLAGS             += -std=gnu99 -Wl,-u,vfprintf
-#CFLAGS             += -Wshift-count-overflow
+CFLAGS             += -std=gnu99 -Wl,-u,vfprintf -Wall
 CFLAGS             += $(INC)
 CFLAGS             += $(OPTIMIZE)
 CFLAGS             += -mmcu=$(MCU_TARGET)
