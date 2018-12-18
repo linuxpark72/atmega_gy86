@@ -17,8 +17,21 @@ at the later, i will apply this gy86 sensor and its code to my drone.
 
 ## current status of this project
 
-  - ms5611   : (90%, needed more valification), https://youtu.be/iHecBikMY48, 
-               1. validation of crc, 2. check accuracy of compensated Press, Temp
+  - ms5611   : 100%, 1'st, 2'st compensation and the result looks like below
+
+
+		  C0[108], C1[44812], C2[46116], C3[28298], C4[24839], C5[30901], C6[28039], C7[35106] D1(9048194), D2(7950376), CRC(2), dT(39720.00)
+		  1'st compensation:   Temperature(21.3276), Press(1014.5293 mbar)
+		  2'st compensation:   Temperature(21.3276), Press(1014.5293 mbar)
+
+		  C0[108], C1[44812], C2[46116], C3[28298], C4[24839], C5[30901], C6[28039], C7[35106] D1(9048166), D2(7950412), CRC(2), dT(39756.00)
+		  1'st compensation:   Temperature(21.3288), Press(1014.5264 mbar)
+		  2'st compensation:   Temperature(21.3288), Press(1014.5264 mbar)
+
+		  C0[108], C1[44812], C2[46116], C3[28298], C4[24839], C5[30901], C6[28039], C7[35106] D1(9048156), D2(7950460), CRC(2), dT(39804.00)
+		  1'st compensation:   Temperature(21.3305), Press(1014.5284 mbar)
+		  2'st compensation:   Temperature(21.3305), Press(1014.5284 mbar)
+
 
   - HMC5883L : 40%
 
@@ -27,17 +40,13 @@ at the later, i will apply this gy86 sensor and its code to my drone.
 
 ## Todo
 
-  - HMC5883L :
-               1. analyze this sensor with its datasheet as soon as possible. 
+  - HMC5883L : analyze this sensor with its datasheet as soon as possible. 
 
-  - ms5611   : 
-               2. validation of crc -> check accuracy of compensated Press, Temp.
+  - ms5611   : completed
 
-  - MPU6050  :
-               3. maybe from mach of 2018.
+  - MPU6050  : maybe from Feb of 2019.
 
-  - drone    :
-               4. replace the previous DMP code with the code of this project.
+  - drone    : maybe from April of 2019.
 
 
 ## Current Drone status
