@@ -148,16 +148,14 @@ unsigned char ms5611_crc4(unsigned int C[])
 
 int ms5611_test() {
 #if defined(MS5611_TEST)
-	//unsigned int C[8]; // calibration coefficients
 	uint16_t C[8]; // calibration coefficients
-	//unsigned int C[8] = {0x3132, 0x3334, 0x3536, 0x3738, 0x3940, 0x4142, 0x4344, 0x4500}; // calibration coefficients
-	unsigned long D1; // ADC value of the pressure conversion
-	unsigned long D2; // ADC value of the temperature conversion
-	double P;               // compensated pressure value
-	double T;               // compensated temperature value
-	double dT; // difference between actual and measured temperature
-	double OFF; // offset at actual temperature
-	double SENS; // sensitivity at actual temperature
+	uint32_t D1;
+	uint32_t D2;
+	float P;               // compensated pressure value
+	float T;               // compensated temperature value
+	float dT; // difference between actual and measured temperature
+	float OFF; // offset at actual temperature
+	float SENS; // sensitivity at actual temperature
 	unsigned char n_crc;  // crc value of the prom
 	unsigned int ret;
 	int i;
@@ -171,35 +169,34 @@ int ms5611_test() {
 	}
 
 	// read coefficients
-	for (i=0;i<8;i++) { 
+	for (i = 0; i < 8; i++) {
 	  C[i] = cmd_prom(i);
 	}
 	
-	C[7] = 0xFF00 & C[7];
 	n_crc = ms5611_crc4(C);  /* calculate the CRC */
 
-	for(;;) {
+	for (;;) {
 
-		D2 = cmd_adc(CMD_ADC_D2+CMD_ADC_256);      // read D2
-		D1 = cmd_adc(CMD_ADC_D1+CMD_ADC_256);      // read D1
+		D1 = cmd_adc(CMD_ADC_D1+CMD_ADC_4096);      // read D2
+		D2 = cmd_adc(CMD_ADC_D2+CMD_ADC_4096);      // read D1
 		
 		// calcualte 1st order pressure and
 		// temperature (MS5607 1st order algorithm)
-		dT = D2 - C[5] * pow(2, 8);
-		OFF = C[2] * pow(2, 17) + dT * C[4]/pow(2,6);
-		SENS = C[1] * pow(2, 16) + dT * C[3]/pow(2,7);
-
+		dT = D2 - (C[5] * pow(2, 8));
 		T = (2000 + (dT * C[6])/pow(2,23))/100;
-		P = (((D1*SENS)/pow(2,21) -OFF)/ pow(2,15))/100;
+		OFF = ((C[2] * pow(2, 16)) + ((C[4] * dT) / pow(2,7)));
+		SENS = ((C[1] * pow(2, 15)) + ((C[3] * dT)/pow(2,8)));
 
-		printf("C0[%d], C1[%d], C2[%d], C3[%d], C4[%d], C5[%d], C6[%d], C7[%d]\r\n"
-				">>> D1(%ld), D2(%ld), CRC(%d), dT(%5.2f), Temp(%5.2f), Press(%.f mbar)\r\n",
+		P = (((D1*SENS/pow(2,21)) - OFF) / pow(2,15))/100;
+
+		printf("C0[%u], C1[%u], C2[%u], C3[%u], C4[%u], C5[%u], C6[%u], C7[%u]\r\n"
+				">>> D1(%lu), D2(%lu), CRC(%d), dT(%5.2f), Temp(%3.2f), Press(%5.2f mbar)\r\n\r\n",
 				C[0], C[1], C[2], C[3],	C[4], C[5], C[6], C[7], 
 				D1, D2, n_crc, dT, T,  P);
 		_delay_ms(1000);
 	}
 
-	printf("%s exit...\r\n", __FUNCTION__);
+	printf("exit...\r\n");
 #endif
 	return 1;
 }
