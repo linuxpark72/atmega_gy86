@@ -41,9 +41,8 @@ CFLAGS             += $(INC)
 CFLAGS             += $(OPTIMIZE)
 CFLAGS             += -mmcu=$(MCU_TARGET)
 CFLAGS             += -DDEBUG
-CFLAGS             += -DMS5611_TEST
-#CFLAGS             += -DHMC5883L_TEST
-#CFLAGS             += -DHMC5883L_CC_MODE
+#CFLAGS             += -DMS5611_TEST
+CFLAGS             += -DHMC5883_TEST
 #CFLAGS             += -DMPU6050_TEST
 LDFLAGS             = -Wl,-Map,$(PROG).map
 LIBS                = -lm -lprintf_flt
