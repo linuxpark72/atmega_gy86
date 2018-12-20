@@ -1,0 +1,2 @@
+
+https://www.electronicwings.com/avr-atmega/magnetometer-hmc5883l-interfacing-with-atmega16
