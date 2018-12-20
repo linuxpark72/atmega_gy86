@@ -9,7 +9,9 @@
 #define _HMC5883L_
 
 // HMC5883 I2C slave address
-#define HMC5883_SLAVE_ADDR  0x3C
+#define HMC5883_ADDR          0x3C
+#define HMC5883_WRITE         0x3C
+#define HMC5883_READ          0x3D
 
 // HMC5883 register addresses
 #define HMC5883_REG_CONFIG_A  0x00
@@ -47,7 +49,7 @@
 // scaling factor for gain = 1090 LSb/Gauss
 #define SCALING_FACTOR  0.73
 // PI value
-#define PI  3.14159265358979323846
+//#define PI  3.14159265358979323846
 
 extern int hmc5883l_test(void);
 
