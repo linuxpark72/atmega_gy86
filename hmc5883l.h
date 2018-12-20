@@ -21,6 +21,11 @@
 #define HMC5883_REG_DATAZ_L   0x06
 #define HMC5883_REG_DATAY_H   0x07
 #define HMC5883_REG_DATAY_L   0x08
+#define HMC5883_REG_SR        0x09
+#define HMC5883_REG_IA        0x0A
+#define HMC5883_REG_IB        0x0B
+#define HMC5883_REG_IC        0x0
+
 // HMC5883 configuration
 // 3 dimensional axis
 #define X_AXIS  1
@@ -37,7 +42,8 @@
 // gain = 1090 LSb/Gauss
 #define HMC_GAIN_1090  0x01
 // disable high speed I2C, enable single measurement mode
-#define HMC_MODE  0x01
+//#define HMC_MODE  0x01
+#define HMC_MODE  0x00
 // scaling factor for gain = 1090 LSb/Gauss
 #define SCALING_FACTOR  0.73
 // PI value

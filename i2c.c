@@ -32,7 +32,8 @@
 #include <util/delay.h>
 
 /* I2C clock in Hz */
-#define SCL_CLOCK  200000L
+//#define SCL_CLOCK  200000L
+#define SCL_CLOCK  100000L
 
 /* I2C timer max delay */
 #define I2C_TIMER_DELAY 0xFF

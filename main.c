@@ -20,6 +20,7 @@
 int main(void) {
 	stdout = &OUTPUT;
 
+	printf("Main \r\n");
 	uart_init();
 	i2c_init();
 
@@ -27,9 +28,9 @@ int main(void) {
 	hmc5883l_test();
 
 #if defined(MPU6050_TEST)
-	printf("TODO :-) \n");
+	printf("TODO :-) \r\n");
 #endif 
-	printf("exit\n");
+	printf("exit\r\n");
 
 	return 0;
 }
