@@ -1,0 +1,23 @@
+
+1. invensense 
+
+   1.1. main page
+
+	https://www.invensense.com/products/motion-tracking/6-axis/mpu-6050/
+
+   1.2. application 
+
+     https://store.invensense.com/ProductDetail/MPU-6050-InvenSense-Inc/422200/pid=1135 
+
+	 ./application_note
+
+
+2.1. arm reference board application 
+
+	https://store.invensense.com/ProductDetail/EVINVARM-TDK-InvenSense/425140/?ProdId=425140&
+
+	arm-control-board
+
+
+
+
