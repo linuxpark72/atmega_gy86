@@ -146,24 +146,15 @@ int hmc_isready(void) {
 	return data & 0x01;
 }
 #endif
-void Magneto_init()                    
-{
-    i2c_start(0x3C);
-    i2c_write(0x00);
-    i2c_write(0x70);
-    i2c_write(0xA0);
-    i2c_write(0x00);
-    i2c_stop();
-}
 
-int Magneto_GetHeading()
+static int Magneto_GetHeading()
 {
 	int x, y, z;
 	double Heading;
 
-	i2c_start(0x3C);
+	i2c_start(0x1E);
 	i2c_write(0x03);
-	i2c_rep_start(0x3D);
+	i2c_rep_start(0x1F);
 	/* read 16 bit x,y,z value (2?s complement form) */
 	x = (((int)i2c_readAck()<<8) | (int)i2c_readAck());
 	z = (((int)i2c_readAck()<<8) | (int)i2c_readAck());
@@ -178,8 +169,19 @@ int Magneto_GetHeading()
 	return (Heading* 180 / PI);
 }
 
-void check() {
+static void Magneto_init()                    
+{
+    i2c_start(0x3C);
+    i2c_write(0x00);
+    i2c_write(0x70);
+    i2c_write(0xA0);
+    i2c_write(0x01);
+    i2c_stop();
+}
+
+static void check() {
 	char a, b, c;
+	a = b = c = 0;
 
 	i2c_start(0x3C);
 	i2c_write(0x0A);
@@ -191,22 +193,51 @@ void check() {
 
 	printf("%c %c %c\r\n", a, b, c);
 }
-
+#if 0
 int hmc5883l_test(void) {
 #ifdef HMC5883_TEST
 	int ret;
 
 	printf("\r\n");
 	printf("testing...\r\n");
+
 	Magneto_init ();
+	_delay_ms(6);
 	printf("done\r\n");
 	check();
 	printf("v done\r\n");
 	while (1) {
-		ret = Magneto_GetHeading();
-		printf("%u\r\n", ret);
-		_delay_ms(1000);
+		Magneto_GetHeading();
+		//Magneto_init ();
+		//check();
+		_delay_ms(200);
 	}
 #endif /* HMC5883_TEST */
 	return 1;
+}
+#endif
+int hmc5883l_test(void) {
+#ifdef HMC5883_TEST
+	printf("\r\n");
+	printf("testing...\r\n");
+
+	i2c_start(0x3C);
+    i2c_write(0x00);
+    i2c_write(0x70);
+    i2c_write(0xA0);
+    i2c_stop();
+
+	//
+	_delay_ms(6);
+	for(;;) {
+		i2c_start(0x3C);
+		i2c_write(0x02);
+		i2c_write(0x01);
+		i2c_stop();
+		_delay_ms(6);
+		Magneto_GetHeading();
+		_delay_ms(200);
+	}
+	return 0;
+#endif /* HMC5883_TEST */ 
 }
