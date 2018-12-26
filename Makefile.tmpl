@@ -6,7 +6,7 @@
 # Author  : jeho park<linuxpark@gmail.com>
 
 # DEV_OS: MAC, LINUX
-DEV_OS              = MAC
+DEV_OS              = LINUX
 PROG                = gy86
 
 ### MAC OSX
@@ -20,10 +20,11 @@ CTAGS               = /usr/bin/ctags
 endif
 
 ### check 1. uart device file.
-ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
+#ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
+ISP_DEV_NAME        = /dev/ttyUSB1
 ### check 2. isp device.
 ISP_PROG_TYPE       = stk500
-OBJS                = i2c.o uart.o ms5611.o hmc5883l.o main.o
+OBJS                = i2c.o uart.o ms5611.o hmc5883l.o qmc5883.o main.o
 ### check 3. target mcu.
 MCU_TARGET          = atmega128
 OPTIMIZE            = -O1
@@ -42,7 +43,8 @@ CFLAGS             += $(OPTIMIZE)
 CFLAGS             += -mmcu=$(MCU_TARGET)
 CFLAGS             += -DDEBUG
 #CFLAGS             += -DMS5611_TEST
-CFLAGS             += -DHMC5883_TEST
+#CFLAGS             += -DHMC5883_TEST
+CFLAGS             += -DQMC5883_TEST
 #CFLAGS             += -DMPU6050_TEST
 LDFLAGS             = -Wl,-Map,$(PROG).map
 LIBS                = -lm -lprintf_flt
