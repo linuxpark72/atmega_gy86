@@ -32,29 +32,23 @@
 #include <util/delay.h>
 
 /* I2C clock in Hz */
-//#define SCL_CLOCK  200000L
-#define SCL_CLOCK  100000L
+#define F_SCL  400000UL
+//#define F_SCL  100000UL
+#define Prescaler 1
+#define TWBR_val ((((F_CPU / F_SCL) / Prescaler) - 16 ) / 2)
 
 /* I2C timer max delay */
 #define I2C_TIMER_DELAY 0xFF
-
-#define I2C_SCL PD0
-#define I2C_SDA PD1
 
 /*************************************************************************
  Initialization of the I2C bus interface. Need to be called only once
 *************************************************************************/
 void i2c_init(void)
 {
-  /* i2c in/out port */
-  DDRD |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
-  DDRD |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
-
   /* initialize TWI clock: 200 kHz clock, TWPS = 0 => prescaler = 1 */
-  TWSR = 0;                         /* no prescaler */
-  TWBR = ((F_CPU/SCL_CLOCK)-16)/2;  /* must be > 10 for stable operation */
-  TWCR = (1 << TWEN) | (1 << TWEA); // I2C 활성화, ACK 허용
-
+  //TWSR = 0;                         /* no prescaler */
+  TWBR = (uint8_t)TWBR_val;
+  TWSR = (0 << TWPS1) | (0 << TWPS0);
 }/* i2c_init */
 
 
@@ -68,7 +62,7 @@ unsigned char i2c_start(unsigned char address)
     uint8_t   twst;
 
 	// send START condition
-	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN) | (1<<TWEA);
+	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 
 	// wait until transmission completed (until receive ACK)
 	i2c_timer = I2C_TIMER_DELAY;
@@ -174,7 +168,7 @@ void i2c_stop(void)
 	uint32_t  i2c_timer = 0;
 
     /* send stop condition */
-	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO) | (1<<TWEA);
+	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 	
 	// wait until stop condition is executed and bus released
 	i2c_timer = I2C_TIMER_DELAY;
