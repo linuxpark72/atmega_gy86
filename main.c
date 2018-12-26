@@ -13,6 +13,7 @@
 #include "uart.h"
 #include "ms5611.h"
 #include "hmc5883l.h"
+#include "qmc5883.h"
 
 #define I2C_SCL PD0
 #define I2C_SDA PD1
@@ -20,12 +21,13 @@
 int main(void) {
 	stdout = &OUTPUT;
 
-	printf("Main \r\n");
-	uart_init();
+	sei();
 	i2c_init();
+	uart_init();
 
 	ms5611_test();
 	hmc5883l_test();
+	qmc5883_test();
 
 #if defined(MPU6050_TEST)
 	printf("TODO :-) \r\n");
