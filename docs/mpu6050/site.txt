@@ -25,6 +25,21 @@
 	https://github.com/jrowberg/i2cdevlib/tree/master/STM32
 
 
+	github.com/Crazepony/crazepony-firmware-none/
+		User_Src/main.c
+			MPU6050_initialize()
+			MPU6050_DMP_Initialize()
+
+			IMU_Init()
+
+			DMP_Routing()
+			DMP_getYawPitchRoll()
+
+			IMU_Process()
+			IMU_Calibrate()
+
+
+
 4. software download 
 
 	https://www.invensense.com/developers/software-downloads/  
