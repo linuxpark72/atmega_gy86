@@ -23,3 +23,9 @@
 3. stm32 apps
 
 	https://github.com/jrowberg/i2cdevlib/tree/master/STM32
+
+
+4. software download 
+
+	https://www.invensense.com/developers/software-downloads/  
+	and download "Embedded MotionDriver 6.12"
