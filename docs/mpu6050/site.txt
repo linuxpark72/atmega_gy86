@@ -20,4 +20,6 @@
 
 
 
+3. stm32 apps
 
+	https://github.com/jrowberg/i2cdevlib/tree/master/STM32
