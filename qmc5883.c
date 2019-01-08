@@ -133,16 +133,16 @@ int qmc5883_test() {
 	DDRD |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
 	DDRD |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
 
-	PORTD |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
-	PORTD |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
+	//PORTD |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
+	//PORTD |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
 
-
+#if 0
 	ret = qmc_softreset();
 	if (ret) {
 		printf("\r\nreset error: %d\r\n", ret);
 		return ret;
 	}
-
+#endif
 	ret = qmc_init();
 	if (ret) {
 		printf("\r\ninit error: %d\r\n", ret);
