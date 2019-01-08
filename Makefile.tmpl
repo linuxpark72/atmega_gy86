@@ -5,9 +5,20 @@
 # Created : 2017. 12. 10
 # Author  : jeho park<linuxpark@gmail.com>
 
+MCU_TARGET          = atmega128
 # DEV_OS: MAC, LINUX
 DEV_OS              = LINUX
 PROG                = gy86
+
+#CFLAGS             += -DMS5611_TEST
+#CFLAGS             += -DHMC5883_TEST
+#CFLAGS             += -DQMC5883_TEST
+CFLAGS             += -DMPU6050_TEST
+
+#ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
+ISP_DEV_NAME        = /dev/ttyUSB1
+
+ISP_PROG_TYPE       = stk500
 
 ### MAC OSX
 ifeq ($(DEV_OS),MAC)
@@ -19,18 +30,6 @@ CROSS_COMPILER	    = /usr/bin
 CTAGS               = /usr/bin/ctags
 endif
 
-### check 1. uart device file.
-#ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
-ISP_DEV_NAME        = /dev/ttyUSB1
-### check 2. isp device.
-ISP_PROG_TYPE       = stk500
-OBJS                = i2c.o uart.o ms5611.o hmc5883l.o qmc5883.o main.o
-### check 3. target mcu.
-MCU_TARGET          = atmega128
-OPTIMIZE            = -O1
-OPTIMIZE           += -D__OPTIMIZE__
-
-
 CC                  = ${CROSS_COMPILER}/avr-gcc 
 OBJCOPY             = ${CROSS_COMPILER}/avr-objcopy
 OBJDUMP             = ${CROSS_COMPILER}/avr-objdump
@@ -39,16 +38,13 @@ INC                 = -I.
 # CFLAGS CFLAGS     = -g -Wall -gdwarf-2
 CFLAGS             += -std=gnu99 -Wl,-u,vfprintf -Wall
 CFLAGS             += $(INC)
-CFLAGS             += $(OPTIMIZE)
+CFLAGS             += -O1 -D__OPTIMIZE__ 
 CFLAGS             += -mmcu=$(MCU_TARGET)
 CFLAGS             += -DDEBUG
-#CFLAGS             += -DMS5611_TEST
-#CFLAGS             += -DHMC5883_TEST
-CFLAGS             += -DQMC5883_TEST
-#CFLAGS             += -DMPU6050_TEST
 LDFLAGS             = -Wl,-Map,$(PROG).map
 LIBS                = -lm -lprintf_flt
 EXTRA_CLEAN_FILES   = *.hex *.bin *.srec
 # $brew install ctags
 #CTAGS               = /usr/local/Cellar/ctags/5.8_1/bin/ctags
 CTAGS               = /usr/bin/ctags
+OBJS                = i2c.o uart.o main.o ms5611.o hmc5883l.o qmc5883.o mpu6050.o
