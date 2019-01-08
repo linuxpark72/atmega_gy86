@@ -11,28 +11,18 @@
 #include <util/delay.h>
 #include "i2c.h"
 #include "uart.h"
-#include "ms5611.h"
-#include "hmc5883l.h"
-#include "qmc5883.h"
-
-#define I2C_SCL PD0
-#define I2C_SDA PD1
+#include "mpu6050.h"
 
 int main(void) {
 	stdout = &OUTPUT;
 
-	sei();
 	i2c_init();
 	uart_init();
 
 	ms5611_test();
 	hmc5883l_test();
 	qmc5883_test();
-
-#if defined(MPU6050_TEST)
-	printf("TODO :-) \r\n");
-#endif 
-	printf("exit\r\n");
+	mpu6050_test();
 
 	return 0;
 }
