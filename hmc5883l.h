@@ -9,7 +9,7 @@
 #define _HMC5883L_
 
 // HMC5883 I2C slave address
-#define HMC5883_ADDR          0x3C
+#define HMC5883_ADDR          0x1E
 #define HMC5883_WRITE         0x3C
 #define HMC5883_READ          0x3D
 

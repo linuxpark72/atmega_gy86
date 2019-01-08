@@ -216,19 +216,52 @@ int hmc5883l_test(void) {
 	return 1;
 }
 #endif
+#define I2C_SCL PD0
+#define I2C_SDA PD1
+
 int hmc5883l_test(void) {
 #ifdef HMC5883_TEST
+	uint8_t ret;
+
 	printf("\r\n");
 	printf("testing...\r\n");
 
-	i2c_start(0x3C);
-    i2c_write(0x00);
-    i2c_write(0x70);
-    i2c_write(0xA0);
+	DDRD |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
+	DDRD |= (0 << I2C_SDA); // SDA 핀을 출력으로 설정
+	PORTD |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
+	PORTD |= (0 << I2C_SDA); // SDA 핀을 출력으로 설정
+	TWCR = (1 << TWEN) | (1 << TWEA);
+		
+	_delay_ms(10);
+retry:
+	ret = i2c_start(0x3C);
+	if (ret) {
+		printf("i2c_start error -> 0x%x\r\n", ret);
+		if (ret == 0x20) {
+			i2c_stop();
+			_delay_ms(600);
+			goto retry;
+		}
+	}
+    ret = i2c_write(0x00);
+	if (ret) {
+		printf("i2c_write error 0x%x\r\n", ret);
+		return 1;
+	}
+    ret = i2c_write(0x70);
+	if (ret) {
+		printf("i2c_write error 0x%x\r\n", ret);
+		return 1;
+	}
+    ret = i2c_write(0xA0);
+	if (ret) {
+		printf("i2c_write error 0x%x\r\n", ret);
+		return 1;
+	}
     i2c_stop();
-
-	//
-	_delay_ms(6);
+		
+	printf("init success \r\n");
+	_delay_ms(1000);
 	for(;;) {
 		i2c_start(0x3C);
 		i2c_write(0x02);
