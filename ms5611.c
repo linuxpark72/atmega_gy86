@@ -169,10 +169,11 @@ int ms5611_test() {
 
 	ret = ms5611_reset();              // reset IC
 	if (!ret) {
-		printf("failed to ms5611_reset(): %d\r\n", ret);
+		printf("\r\n\r\nfailed to ms5611_reset(): %d\r\n", ret);
 		return 0;
 	}
-	printf("\n%s ms5611 initialized...\r\n", __FUNCTION__);
+	printf("\r\n%s ms5611 initialized...\r\n", __FUNCTION__);
+	_delay_ms(5000);
 
 	// read coefficients
 	for (i = 0; i < 8; i++) {
