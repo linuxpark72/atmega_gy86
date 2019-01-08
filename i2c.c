@@ -32,10 +32,10 @@
 #include <util/delay.h>
 
 /* I2C clock in Hz */
-#define F_SCL  400000UL
-//#define F_SCL  100000UL
+//#define F_SCL  400000UL
+#define SCL_CLOCK  100000UL
 #define Prescaler 1
-#define TWBR_val ((((F_CPU / F_SCL) / Prescaler) - 16 ) / 2)
+//#define TWBR_val ((((F_CPU / F_SCL) / Prescaler) - 16 ) / 2)
 
 /* I2C timer max delay */
 #define I2C_TIMER_DELAY 0xFF
@@ -45,10 +45,18 @@
 *************************************************************************/
 void i2c_init(void)
 {
-  /* initialize TWI clock: 200 kHz clock, TWPS = 0 => prescaler = 1 */
-  //TWSR = 0;                         /* no prescaler */
-  TWBR = (uint8_t)TWBR_val;
-  TWSR = (0 << TWPS1) | (0 << TWPS0);
+	//DDRC |= (1 << I2C_SCL); // SCL 핀을 출력으로 설정
+	//DDRC |= (1 << I2C_SDA); // SDA 핀을 출력으로 설정
+	/* initialize TWI clock: 200 kHz clock, TWPS = 0 => prescaler = 1 */
+	//TWSR = 0;                         /* no prescaler */
+	//TWBR = (uint8_t)TWBR_val;
+	//TWBR = 32;
+	//TWSR = (0 << TWPS1) | (0 << TWPS0);
+	//TWCR = (1 << TWEN) | (1 << TWEA);
+
+	/* Initialize TWI clock: 100 kHz clock, TWPS = 0 => prescaler = 1 */
+	TWSR = 0;                         /* No prescaler */
+	TWBR = ((F_CPU/SCL_CLOCK)-16)/2;  /* Must be > 10 for stable operation */
 }/* i2c_init */
 
 
@@ -72,7 +80,7 @@ unsigned char i2c_start(unsigned char address)
 
 	// check value of TWI Status Register. Mask prescaler bits.
 	twst = TW_STATUS & 0xF8;
-	if ( (twst != TW_START) && (twst != TW_REP_START)) return 1;
+	if ( (twst != TW_START) && (twst != TW_REP_START)) return 2;
 
 	// send device address
 	TWDR = address;
@@ -82,11 +90,11 @@ unsigned char i2c_start(unsigned char address)
 	i2c_timer = I2C_TIMER_DELAY;
 	while(!(TWCR & (1<<TWINT)) && i2c_timer--);
 	if(i2c_timer == 0)
-		return 1;
+		return 3;
 
 	// check value of TWI Status Register. Mask prescaler bits.
 	twst = TW_STATUS & 0xF8;
-	if ( (twst != TW_MT_SLA_ACK) && (twst != TW_MR_SLA_ACK) ) return 1;
+	if ( (twst != TW_MT_SLA_ACK) && (twst != TW_MR_SLA_ACK) ) return twst;
 
 	return 0;
 
