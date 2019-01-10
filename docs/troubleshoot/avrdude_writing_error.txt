@@ -1,0 +1,8 @@
+https://forum.arduino.cc/index.php?topic=134382.0
+
+https://github.com/MCUdude/MegaCore
+
+
+https://github.com/linuxpark72/atmega_gy86/blob/master/docs/atmega128/atmel_atmega128_manual.pdf 
+
+273,   Boot LoaderSupport – Read-While-Write Self-Programming
