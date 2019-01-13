@@ -16,27 +16,31 @@
 #include "mpu6050.h"
 
 static uint8_t buffer[7];
-static int16_t accADC[3];
-static int16_t gyroADC[3];
-static float   accRaw[3];      //m/s^2
-static float   gyroRaw[3];     //rad/s
+int16_t accADC[3] = {0};
+int16_t gyroADC[3] = {0};
 
-static void MPU6050AccRead(int16_t *accData) {
+static uint8_t MPU6050AccRead() {
 	uint8_t buf[6];
+	uint8_t c;
 
-	i2c_readBytes(0x68, MPU6050_RA_ACCEL_XOUT_H, 6, buf);
-	accData[0] = (int16_t)((buf[0] << 8) | buf[1]);
-	accData[1] = (int16_t)((buf[2] << 8) | buf[3]);
-	accData[2] = (int16_t)((buf[4] << 8) | buf[5]);
+	c = i2c_readBytes(0x68, MPU6050_RA_ACCEL_XOUT_H, 6, buf);
+	accADC[0] = (int16_t)((buf[0] << 8) | buf[1]);
+	accADC[1] = (int16_t)((buf[2] << 8) | buf[3]);
+	accADC[2] = (int16_t)((buf[4] << 8) | buf[5]);
+
+	return c;
 }
 
-static void MPU6050GyroRead(int16_t *gyroData) {
+static uint8_t MPU6050GyroRead() {
 	uint8_t buf[6];
+	uint8_t c;
 
-	i2c_readBytes(0x68, MPU6050_RA_GYRO_XOUT_H, 6, buf);
-	gyroData[0] = (int16_t)((buf[0] << 8) | buf[1]) ;
-	gyroData[1] = (int16_t)((buf[2] << 8) | buf[3]) ;
-	gyroData[2] = (int16_t)((buf[4] << 8) | buf[5]) ;
+	c = i2c_readBytes(0x68, MPU6050_RA_GYRO_XOUT_H, 6, buf);
+	gyroADC[0] = (int16_t)((buf[0] << 8) | buf[1]) ;
+	gyroADC[1] = (int16_t)((buf[2] << 8) | buf[3]) ;
+	gyroADC[2] = (int16_t)((buf[4] << 8) | buf[5]) ;
+
+	return c;
 }
 
 /* stolen from crazepony-firmware-none, i2cdevlib */
@@ -45,7 +49,6 @@ static void MPU6050_initialize() {
 	//PWR_MGMT_1    -- DEVICE_RESET 1
 	i2c_writeByte(0x68, MPU6050_RA_PWR_MGMT_1, 0x80);
 
-	//delay_ms(50);
 	_delay_ms(50);
 
 	//SMPLRT_DIV    -- SMPLRT_DIV = 0  Sample Rate = Gyroscope Output Rate / (1 + SMPLRT_DIV)
@@ -93,28 +96,30 @@ uint8_t MPU6050_testConnection() {
 int mpu6050_test() {
 #ifdef MPU6050_TEST
 	int i;
+	uint8_t ac, gc;
+	float   accRaw[3];      //m/s^2
+	float   gyroRaw[3];     //rad/s
 
 	if (!MPU6050_testConnection()) {
 		return -1;
 	}
-	printf("\r\nmpu6050(0x%x) connected!\r\n", MPU6050_getDeviceID() << 1);
-	_delay_ms(2000);
+	printf("\r\n\r\nmpu6050(0x%x) connected!\r\n", MPU6050_getDeviceID() << 1);
 
 	/* init */
 	MPU6050_initialize();
 	
 	/* load */
 	while(1) {
-		MPU6050AccRead(accADC);
-		MPU6050GyroRead(gyroADC);
+		ac = MPU6050AccRead();
+		gc = MPU6050GyroRead();
 
 		for (i=0; i<3; i++) {
-			accRaw[i]= (float)accADC[i] *ACC_SCALE * CONSTANTS_ONE_G ;
-			gyroRaw[i]=(float)gyroADC[i] * GYRO_SCALE * M_PI_F /180.f;      //deg/s
+			accRaw[i]= (float)(accADC[i] * ACC_SCALE * CONSTANTS_ONE_G);
+			gyroRaw[i]=(float)(gyroADC[i] * GYRO_SCALE * M_PI_F)/180.f;      //deg/s
 		}
 
-		printf("ACCEL[x:%4.3f, y:%4.3f, z:%4.3f], GYRO[x:%4.3f, y:%4.3f z:%4.3f]\r\n",
-			   accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
+		printf("%u, %u, ACCEL[x:%4.3f, y:%4.3f, z:%4.3f], GYRO[x:%4.3f, y:%4.3f z:%4.3f]\r\n",
+			   ac, gc, accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
 		_delay_ms(10);
 	}
 
