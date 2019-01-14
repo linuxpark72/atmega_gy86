@@ -53,7 +53,8 @@ static void MPU6050_initialize() {
 
 	_delay_ms(50);
 
-	//SMPLRT_DIV    -- SMPLRT_DIV = 0  Sample Rate = Gyroscope Output Rate / (1 + SMPLRT_DIV)
+	//SMPLRT_DIV    -- SMPLRT_DIV = 0  Sample Rate = Gyroscope Output Rate(8Khz) / (1 + SMPLRT_DIV)
+	//   refer to DLPF
 	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_SMPLRT_DIV, 0x00);
 
     //PWR_MGMT_1    -- SLEEP 0; CYCLE 0; TEMP_DIS 0; CLKSEL 3 (PLL with Z Gyro reference)
@@ -71,10 +72,16 @@ static void MPU6050_initialize() {
 	//default DLPF_CFG = 0 => ACC bandwidth = 260Hz  GYRO bandwidth = 256Hz)
 	//IICwriteByte(devAddr, MPU6050_RA_CONFIG, MPU6050_DLPF_BW_42);
 	// Digital Low Pass Filter(DLPF)
-	//                       ACCEL (Fs 1kHz)     Gyro (Fs 1kHz)
-	//                       bw    delay         bw    delay
-	//MPU6050_DLPF_BW_42(3): 44Hz  4.9ms         42Hz  4.8ms 
-	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_CONFIG, MPU6050_DLPF_BW_42);
+	//                       ACCEL (Fs 1kHz)     Gyro         
+	//                       bw    delay         bw    delay   FS Khz
+	//                   0:  260   0             256   0.98      8     <=== gyro output rate (8Khz)
+	//                   ...
+	//MPU6050_DLPF_BW_42(3): 44Hz  4.9ms         42Hz  4.8ms     1
+	//                   ...
+	//                   7 : reserved            reserved        8 
+	//i2c_writeByte(MPU6050_ADDR, MPU6050_RA_CONFIG, MPU6050_DLPF_BW_42);
+	/* make DLPF BW 256Hz */
+	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_CONFIG, 0x0);
 	//MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_2000);
 	//void MPU6050_setFullScaleGyroRange(uint8_t range) {
 	//    IICwriteBits(devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, range);
@@ -122,7 +129,6 @@ int mpu6050_test() {
 
 		printf("%u, %u, ACCEL[x:%4.3f, y:%4.3f, z:%4.3f], GYRO[x:%4.3f, y:%4.3f z:%4.3f]\r\n",
 			   ac, gc, accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
-	//	_delay_us(10);
 	}
 
 #endif /* MPU6050_TEST */
