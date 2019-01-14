@@ -33,7 +33,7 @@
 
 /* I2C clock in Hz */
 //#define F_SCL  400000UL
-#define SCL_CLOCK  100000UL
+#define SCL_CLOCK  400000UL
 #define Prescaler 1
 //#define TWBR_val ((((F_CPU / F_SCL) / Prescaler) - 16 ) / 2)
 
