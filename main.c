@@ -11,6 +11,7 @@
 #include <util/delay.h>
 #include "i2c.h"
 #include "uart.h"
+#include "ms5611.h"
 #include "mpu6050.h"
 
 int main(void) {
@@ -20,8 +21,6 @@ int main(void) {
 	uart_init();
 
 	ms5611_test();
-	hmc5883l_test();
-	qmc5883_test();
 	mpu6050_test();
 
 	return 0;
