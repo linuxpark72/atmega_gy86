@@ -15,19 +15,18 @@ PROG                = gy86
 #CFLAGS             += -DQMC5883_TEST
 CFLAGS             += -DMPU6050_TEST
 
-#ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
-ISP_DEV_NAME        = /dev/ttyUSB1
-
 ISP_PROG_TYPE       = stk500
 
 ### MAC OSX
 ifeq ($(DEV_OS),MAC)
 CROSS_COMPILER	    = /opt/local/bin
 CTAGS               = /usr/local/Cellar/ctags/5.8_1/bin/ctags
+ISP_DEV_NAME        = /dev/tty.usbserial-DN018JNZ
 else ifeq ($(DEV_OS),LINUX)
 ### LINUX
 CROSS_COMPILER	    = /usr/bin
 CTAGS               = /usr/bin/ctags
+ISP_DEV_NAME        = /dev/ttyUSB1
 endif
 
 CC                  = ${CROSS_COMPILER}/avr-gcc 
@@ -47,4 +46,4 @@ EXTRA_CLEAN_FILES   = *.hex *.bin *.srec
 # $brew install ctags
 #CTAGS               = /usr/local/Cellar/ctags/5.8_1/bin/ctags
 CTAGS               = /usr/bin/ctags
-OBJS                = i2c.o uart.o main.o ms5611.o mpu6050.o
+OBJS                = i2c.o uart.o timer.o main.o ms5611.o mpu6050.o
