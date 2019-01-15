@@ -108,7 +108,8 @@ int mpu6050_test() {
 	uint8_t ac, gc;
 	float   accRaw[3];      //m/s^2
 	float   gyroRaw[3];     //rad/s
-	unsigned long prev, now, delay, delay_sum = 0;
+	tm_t    prev, current;
+	float   delay, delay_sum = 0;
 	int     lcnt = 0;
 
 	init_timer0();
@@ -121,7 +122,7 @@ int mpu6050_test() {
 	/* init */
 	MPU6050_initialize();
 
-	prev = timer0();
+	timer0(&prev);
 	/* load */
 	while(1) {
 		ac = MPU6050AccRead();
@@ -131,18 +132,19 @@ int mpu6050_test() {
 			accRaw[i]= (float)(accADC[i] * ACC_SCALE * CONSTANTS_ONE_G);
 			gyroRaw[i]=(float)(gyroADC[i] * GYRO_SCALE * M_PI_F)/180.f;      //deg/s
 		}
-		_delay_ms(1);
+		_delay_us(200);
+		//_delay_ms(2);
 
-		now = timer0();
-		delay = now - prev;
+		timer0(&current);
+		delay = timer0_cal(&current, &prev);
 		delay_sum += delay;
-		prev = now;
+		timer0_update(&current, &prev);
 #if 0
 		printf("%u, %u, ACCEL[x:%4.3f, y:%4.3f, z:%4.3f], GYRO[x:%4.3f, y:%4.3f z:%4.3f]\r\n",
 			   ac, gc, accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
 #endif
 		if (++lcnt == 1000) {
-			printf("\r\nDelay: %lu\r\n", (unsigned long)((float)delay_sum/1000));
+			printf("\r\nDelay: %4.2f (ms)\r\n", delay_sum/1000);
 			delay_sum = 0;
             lcnt = 0;
 		}
