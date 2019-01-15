@@ -1,7 +1,7 @@
 /*
- *  qmc5883.c
+ *  mpu6050.c
  *
- * Desc    : 3-Axis Digital compass IC driver.
+ * Desc    : mpu6050 gyro sensor
  * Created : 2018. 12.26
  * Author  : jeho park<linuxpark@gmail.com>
  *
@@ -13,13 +13,13 @@
 #include <stdlib.h>
 #include "i2c.h"
 #include "uart.h"
+#include "timer.h"
 #include "mpu6050.h"
-
-#define MPU6050_ADDR (0x68 <<1) 
 
 static uint8_t buffer[7];
 int16_t accADC[3] = {0};
 int16_t gyroADC[3] = {0};
+#define MPU6050_ADDR (0x68 <<1) 
 
 static uint8_t MPU6050AccRead() {
 	uint8_t buf[6];
@@ -108,6 +108,10 @@ int mpu6050_test() {
 	uint8_t ac, gc;
 	float   accRaw[3];      //m/s^2
 	float   gyroRaw[3];     //rad/s
+	unsigned long prev, now, delay, delay_sum = 0;
+	int     lcnt = 0;
+
+	init_timer0();
 
 	if (!MPU6050_testConnection()) {
 		return -1;
@@ -116,7 +120,8 @@ int mpu6050_test() {
 
 	/* init */
 	MPU6050_initialize();
-	
+
+	prev = timer0();
 	/* load */
 	while(1) {
 		ac = MPU6050AccRead();
@@ -126,9 +131,21 @@ int mpu6050_test() {
 			accRaw[i]= (float)(accADC[i] * ACC_SCALE * CONSTANTS_ONE_G);
 			gyroRaw[i]=(float)(gyroADC[i] * GYRO_SCALE * M_PI_F)/180.f;      //deg/s
 		}
+		_delay_ms(1);
 
+		now = timer0();
+		delay = now - prev;
+		delay_sum += delay;
+		prev = now;
+#if 0
 		printf("%u, %u, ACCEL[x:%4.3f, y:%4.3f, z:%4.3f], GYRO[x:%4.3f, y:%4.3f z:%4.3f]\r\n",
 			   ac, gc, accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
+#endif
+		if (++lcnt == 1000) {
+			printf("\r\nDelay: %lu\r\n", (unsigned long)((float)delay_sum/1000));
+			delay_sum = 0;
+            lcnt = 0;
+		}
 	}
 
 #endif /* MPU6050_TEST */
