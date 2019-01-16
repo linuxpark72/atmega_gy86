@@ -16,6 +16,8 @@
 #define MILLIS_INC_PER_OVF  2
 #define MICROS_INC_PER_OVF  48
 
+#define TIMER_LOOP_CNT     1000
+#define TIMER_LOOP_HZ      0.001
 typedef struct {
 	unsigned long millis;
 	int micros;
