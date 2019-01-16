@@ -48,53 +48,59 @@ static uint8_t MPU6050GyroRead() {
 /* stolen from crazepony-firmware-none, i2cdevlib */
 static void MPU6050_initialize() {
 
-	//PWR_MGMT_1    -- DEVICE_RESET 1
+	/* 
+	 * 1. Reset
+	 * PWR_MGMT_1    -- DEVICE_RESET 1 
+	 */
 	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_PWR_MGMT_1, 0x80);
-
 	_delay_ms(50);
 
-	//SMPLRT_DIV    -- SMPLRT_DIV = 0  Sample Rate = Gyroscope Output Rate(8Khz) / (1 + SMPLRT_DIV)
-	//   refer to DLPF
+
+	/*
+	 * 2. Sampling rate
+	 * Sample Rate = Gyroscope Output Rate(8 or 1Khz) / (1 + SMPLRT_DIV)
+	 * 8khz when DLPF off, 1khz when DLPF on
+	 */
 	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_SMPLRT_DIV, 0x00);
 
-    //PWR_MGMT_1    -- SLEEP 0; CYCLE 0; TEMP_DIS 0; CLKSEL 3 (PLL with Z Gyro reference)
+    /*
+	 * 3. Sleep & Clock
+	 * PWR_MGMT_1    
+	 * SLEEP 0; CYCLE 0; TEMP_DIS 0; CLKSEL 3 (PLL with Z Gyro reference)
+	 */
 	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_PWR_MGMT_1, 0x03);
 
-	// INT_PIN_CFG
-	//        (7)             (6)            (5)           (4)
-	// -- INT_LEVEL_HIGH, INT_OPEN_DIS, LATCH_INT_DIS, INT_RD_CLEAR_DIS, 
-	//        (3)                  (2)               (1)         (0)
-	//    FSYNC_INT_LEVEL_HIGH, FSYNC_INT_DIS, I2C_BYPASS_EN, CLOCK_DIS
-	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_INT_PIN_CFG, 0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);
+	/* 
+	 * 4. INT_PIN_CFG
+	 *       (7)             (6)            (5)           (4)
+	 * -- INT_LEVEL_HIGH, INT_OPEN_DIS, LATCH_INT_DIS, INT_RD_CLEAR_DIS, 
+	 *       (3)                  (2)               (1)         (0)
+	 *   FSYNC_INT_LEVEL_HIGH, FSYNC_INT_DIS, I2C_BYPASS_EN, CLOCK_DIS
+     */
+	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_INT_PIN_CFG, 
+	  0 << 7 | 0 << 6 | 0 << 5 | 0 << 4 | 0 << 3 | 0 << 2 | 1 << 1 | 0 << 0);
 
-	//CONFIG        
-	//-- EXT_SYNC_SET 0 (disable input pin for data sync) ; 
-	//default DLPF_CFG = 0 => ACC bandwidth = 260Hz  GYRO bandwidth = 256Hz)
-	//IICwriteByte(devAddr, MPU6050_RA_CONFIG, MPU6050_DLPF_BW_42);
-	// Digital Low Pass Filter(DLPF)
-	//                       ACCEL (Fs 1kHz)     Gyro         
-	//                       bw    delay         bw    delay   FS Khz
-	//                   0:  260   0             256   0.98      8     <=== gyro output rate (8Khz)
-	//                   ...
-	//MPU6050_DLPF_BW_42(3): 44Hz  4.9ms         42Hz  4.8ms     1
-	//                   ...
-	//                   7 : reserved            reserved        8 
-	//i2c_writeByte(MPU6050_ADDR, MPU6050_RA_CONFIG, MPU6050_DLPF_BW_42);
-	/* make DLPF BW 256Hz */
-	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_CONFIG, 0x0);
-	//MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_2000);
-	//void MPU6050_setFullScaleGyroRange(uint8_t range) {
-	//    IICwriteBits(devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, range);
-	//}
-	i2c_writeBits(MPU6050_ADDR, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, MPU6050_GYRO_FS_2000);
+	/* 
+	 * 5. Digital Low Pass Filter(DLPF)
+	 * -- EXT_SYNC_SET 0 (disable input pin for data sync) ; 
+	 */
+	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_CONFIG, MPU6050_DLPF_BW_42);
+
+	/* 
+	 * 6. Gyro Scaling
+	 */
+	i2c_writeBits(MPU6050_ADDR, MPU6050_RA_GYRO_CONFIG, 
+	  MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, MPU6050_GYRO_FS_2000);
 	
-	// Accel scale 8g (4096 LSB/g)
-	//IICwriteByte(devAddr, MPU6050_RA_ACCEL_CONFIG, 2 << 3);
+	/*
+	 * 7. Accel scale 8g (4096 LSB/g)
+	 */
 	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_ACCEL_CONFIG, 2 << 3);
 }
 
 uint8_t MPU6050_getDeviceID() {
-	i2c_readBits(MPU6050_ADDR, MPU6050_RA_WHO_AM_I, MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, buffer); 
+	i2c_readBits(MPU6050_ADDR, MPU6050_RA_WHO_AM_I,
+				 MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, buffer); 
 	return buffer[0];
 }
 
@@ -131,9 +137,6 @@ int mpu6050_test() {
 			accRaw[i]= (float)(accADC[i] * ACC_SCALE * CONSTANTS_ONE_G);
 			gyroRaw[i]=(float)(gyroADC[i] * GYRO_SCALE * M_PI_F)/180.f;      //deg/s
 		}
-
-		//_delay_us(150);
-		//_delay_ms(2);
 
 		timer0(&current);
 		delay = timer0_cal(&current, &prev);
