@@ -142,14 +142,23 @@ int mpu6050_test() {
 		delay = timer0_cal(&current, &prev);
 		delay_sum += delay;
 		timer0_update(&current, &prev);
-#if 0
-		printf("ACCEL[x:%4.3f, y:%4.3f, z:%4.3f], GYRO[x:%4.3f, y:%4.3f z:%4.3f]\r\n",
-			   accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
-#endif
-		if (++lcnt == 1000) {
-			float avg = delay_sum * 0.001;
+		
+		
+		if (++lcnt == TIMER_LOOP_CNT) {
+			/* avg: delay (ms) */
+			float avg_hz = 1 / (delay_sum * TIMER_LOOP_HZ);
 
-			printf("\r\nDelay: %4.2f (ms), %4.2f (KHz)\r\n", avg, 1/avg);
+			/* TODO */
+#if 1
+			printf("%4.2f(KHz) Accel(x:%4.3f, y:%4.3f, z:%4.3f) Gyro(x:%4.3f, y:%4.3f z:%4.3f)\r\n",
+				   avg_hz, accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
+#else
+
+			printf("%4.2f(KHz)\r\n", avg_hz);
+#endif
+
+
+			/* TODO -end */
 			delay_sum = 0;
             lcnt = 0;
 		}
