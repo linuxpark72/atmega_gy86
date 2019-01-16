@@ -105,7 +105,6 @@ uint8_t MPU6050_testConnection() {
 int mpu6050_test() {
 #ifdef MPU6050_TEST
 	int i;
-	uint8_t ac, gc;
 	float   accRaw[3];      //m/s^2
 	float   gyroRaw[3];     //rad/s
 	tm_t    prev, current;
@@ -125,14 +124,15 @@ int mpu6050_test() {
 	timer0(&prev);
 	/* load */
 	while(1) {
-		ac = MPU6050AccRead();
-		gc = MPU6050GyroRead();
+		MPU6050AccRead();
+		MPU6050GyroRead();
 
 		for (i=0; i<3; i++) {
 			accRaw[i]= (float)(accADC[i] * ACC_SCALE * CONSTANTS_ONE_G);
 			gyroRaw[i]=(float)(gyroADC[i] * GYRO_SCALE * M_PI_F)/180.f;      //deg/s
 		}
-		_delay_us(200);
+
+		//_delay_us(150);
 		//_delay_ms(2);
 
 		timer0(&current);
@@ -140,11 +140,13 @@ int mpu6050_test() {
 		delay_sum += delay;
 		timer0_update(&current, &prev);
 #if 0
-		printf("%u, %u, ACCEL[x:%4.3f, y:%4.3f, z:%4.3f], GYRO[x:%4.3f, y:%4.3f z:%4.3f]\r\n",
-			   ac, gc, accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
+		printf("ACCEL[x:%4.3f, y:%4.3f, z:%4.3f], GYRO[x:%4.3f, y:%4.3f z:%4.3f]\r\n",
+			   accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
 #endif
 		if (++lcnt == 1000) {
-			printf("\r\nDelay: %4.2f (ms)\r\n", delay_sum/1000);
+			float avg = delay_sum * 0.001;
+
+			printf("\r\nDelay: %4.2f (ms), %4.2f (KHz)\r\n", avg, 1/avg);
 			delay_sum = 0;
             lcnt = 0;
 		}

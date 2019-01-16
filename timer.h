@@ -9,6 +9,13 @@
 #ifndef _TIMER_
 #define _TIMER_
 
+/* prescaler 64 -> 1/16M x (64) x 256(8bit timer) -> 1m, 24us*/
+//#define MILLIS_INC_PER_OVF  1
+//#define MICROS_INC_PER_OVF  24
+/* prescaler 128 -> 1/16M x (128) x 256(8bit timer) -> 2m, 48us*/
+#define MILLIS_INC_PER_OVF  2
+#define MICROS_INC_PER_OVF  48
+
 typedef struct {
 	unsigned long millis;
 	int micros;

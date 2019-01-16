@@ -9,9 +9,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "timer.h"
-/* prescaler 64 -> 1/16M x 64 x 256(8bit timer) -> 1m, 24us*/
-#define MILLIS_INC_PER_OVF  1
-#define MICROS_INC_PER_OVF  24
 
 static volatile tm_t tm = {0, 0};
 
@@ -63,7 +60,9 @@ void timer0_update(tm_t *c, tm_t *p) {
 }
 
 void init_timer0() {
-	TCCR0 |= (1 << CS02);
+	// TCCR0 |= (1 << CS01) | (1 << CS00); /* prescaler 32 */
+	// TCCR0 |= (1 << CS02);               /*           64 */
+	TCCR0 |= (1 << CS02) | (1 << CS00);    /*           128 */
 	TIMSK |= (1 << TOIE0);
 
 	sei();
