@@ -2,29 +2,17 @@
 1. invensense 
 
    1.1. main page
-
 	https://www.invensense.com/products/motion-tracking/6-axis/mpu-6050/
-
    1.2. application 
-
      https://store.invensense.com/ProductDetail/MPU-6050-InvenSense-Inc/422200/pid=1135 
-
 	 ./application_note
 
-
 2.1. arm reference board application 
-
 	https://store.invensense.com/ProductDetail/EVINVARM-TDK-InvenSense/425140/?ProdId=425140&
-
 	arm-control-board
 
-
-
 3. stm32 apps
-
 	https://github.com/jrowberg/i2cdevlib/tree/master/STM32
-
-
 	github.com/Crazepony/crazepony-firmware-none/
 		User_Src/main.c
 			MPU6050_initialize()
@@ -38,9 +26,28 @@
 			IMU_Process()
 			IMU_Calibrate()
 
-
-
 4. software download 
 
 	https://www.invensense.com/developers/software-downloads/  
 	and download "Embedded MotionDriver 6.12"
+
+
+5. mpu6050 measurement
+
+	https://youtu.be/lwlOZzNJqJc
+
+	https://github.com/processing/p5.js/wiki/Getting-started-with-WebGL-in-p5
+
+	pi.processing.org/get-started/
+
+
+
+6. matlab
+
+    https://youtu.be/fpJZSQmqDVk
+
+
+
+7. opengl
+
+    https://www.youtube.com/watch?v=qXn_iriolgg
