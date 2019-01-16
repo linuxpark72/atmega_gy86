@@ -1,9 +1,14 @@
 
-(-)2018년 12월 18일 화요일 22시 23분 02초 KST
-  second order temperature compensation of ms5611.
+2019. 1. 17
 
+-> matlab & simulate
 
-(V) 2018. 12. 18. (화) 15:42:33 KST
+  http://davidegironi.blogspot.com/2013/02/avr-atmega-mpu6050-gyroscope-and.html#.XD9CLS0690u
 
-  ms5611
-  https://www.avrfreaks.net/forum/format-specifier-uint32t-correct-syntax 
+  -> filter
+
+  https://robottini.altervista.org/kalman-filter-vs-complementary-filter
+
+  -> Euler Angle & Quaternion
+
+  https://blog.naver.com/kch8246/220989087485

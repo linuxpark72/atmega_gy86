@@ -44,6 +44,17 @@
 
 	http://www.olliw.eu/2013/imu-data-fusing/
 
+  -> matlab & simulate
+
+  http://davidegironi.blogspot.com/2013/02/avr-atmega-mpu6050-gyroscope-and.html#.XD9CLS0690u
+
+  -> filter
+
+  https://robottini.altervista.org/kalman-filter-vs-complementary-filter
+
+  -> Euler Angle & Quaternion
+
+  https://blog.naver.com/kch8246/220989087485
 
 
 6. matlab
