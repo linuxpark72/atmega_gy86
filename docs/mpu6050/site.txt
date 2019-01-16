@@ -42,6 +42,8 @@
 
 	https://youtu.be/CHSYgLfhwUo
 
+	http://www.olliw.eu/2013/imu-data-fusing/
+
 
 
 6. matlab
