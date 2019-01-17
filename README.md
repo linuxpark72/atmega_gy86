@@ -1,18 +1,24 @@
 # atmega_gy86
 
- this project is experimental project just for testing the gy86, 10 axis sensor.
-at the later, i will apply this gy86 sensor and its code to my drone.
+  this project is experimental for testing the gy86, 10 axis sensor.
 
 
 ## Test environment
 
   - [atmega128 + gy86, 10 axis gyro sensor]
 
-  - development host: mac os x (avr-gcc, avrdude), isp(AD-USBISP v06.0, $25).  please refer to docs/HOWTO.txt and Makefile.tmpl of this project.
+  - development host: 
+      mac os x (avr-gcc, avrdude), 
+	  linux ubuntu 16.04
+      isp(AD-USBISP v06.0, $25).  
+	  
+	  please refer to docs/HOWTO.txt and Makefile.tmpl of this project.
 
-  - target device: atmega 128A
 
-  - if you want to know more about the environment, please sent me email.
+  - target device: 
+	
+	  atmega 128A, stm32!
+
 
 
 ## current status of this project
@@ -35,16 +41,16 @@ at the later, i will apply this gy86 sensor and its code to my drone.
 
   - HMC5883L : 40%
 
-  - MPU6050  : 0%
+  - MPU6050  : 70%
 
 
 ## Todo
 
-  - HMC5883L : analyze this sensor with its datasheet as soon as possible. 
+  - HMC5883L : delayed
 
   - ms5611   : completed
 
-  - MPU6050  : maybe from Feb of 2019.
+  - MPU6050  : working now 70%
 
   - drone    : maybe from April of 2019.
 
