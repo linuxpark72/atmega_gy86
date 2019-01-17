@@ -56,5 +56,28 @@
 #define ACC_SCALE  (SENSOR_MAX_G/32768.0f)
 #define GYRO_SCALE  (SENSOR_MAX_W/32768.0f)
 
+/* from avr_lib_mpu6050 */
+#define MPU6050_CALIBRATEDACCGYRO 1 //set to 1 if is calibrated
+#if MPU6050_CALIBRATEDACCGYRO == 1
+#define MPU6050_AXOFFSET 0
+#define MPU6050_AYOFFSET 0
+#define MPU6050_AZOFFSET 0
+#define MPU6050_AXGAIN 16384.0
+#define MPU6050_AYGAIN 16384.0
+#define MPU6050_AZGAIN 16384.0
+#define MPU6050_GXOFFSET -42
+#define MPU6050_GYOFFSET 9
+#define MPU6050_GZOFFSET -29
+#define MPU6050_GXGAIN 16.4
+#define MPU6050_GYGAIN 16.4
+#define MPU6050_GZGAIN 16.4
+#endif
+
+#define mpu6050_mahonysampleFreq 61.0f // sample frequency in Hz
+#define mpu6050_mahonytwoKpDef (2.0f * 0.5f) // 2 * proportional gain
+#define mpu6050_mahonytwoKiDef (2.0f * 0.1f) // 2 * integral gain
+
+/* end from avr_lib_mpu6050 */
+
 extern int mpu6050_test();
 #endif /* _MPU6050_ */

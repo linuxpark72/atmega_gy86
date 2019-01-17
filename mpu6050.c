@@ -16,33 +16,144 @@
 #include "timer.h"
 #include "mpu6050.h"
 
-static uint8_t buffer[7];
-int16_t accADC[3] = {0};
-int16_t gyroADC[3] = {0};
 #define MPU6050_ADDR (0x68 <<1) 
 
-static uint8_t MPU6050AccRead() {
-	uint8_t buf[6];
-	uint8_t c;
+volatile uint8_t buffer[14];
+/* from avr_lib_mpu6050 */
+volatile float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;
+volatile float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;
+/*
+ * Mahony update function (for 6DOF)
+ */
+void mpu6050_mahonyUpdate(float gx, float gy, float gz, float ax, float ay, float az) {
+	float norm;
+	float halfvx, halfvy, halfvz;
+	float halfex, halfey, halfez;
+	float qa, qb, qc;
 
-	c = i2c_readBytes(MPU6050_ADDR, MPU6050_RA_ACCEL_XOUT_H, 6, buf);
-	accADC[0] = (int16_t)((buf[0] << 8) | buf[1]);
-	accADC[1] = (int16_t)((buf[2] << 8) | buf[3]);
-	accADC[2] = (int16_t)((buf[4] << 8) | buf[5]);
+	// Compute feedback only if accelerometer measurement valid (avoids NaN in accelerometer normalisation)
+	if(!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
 
-	return c;
+		// Normalise accelerometer measurement
+		norm = sqrt(ax * ax + ay * ay + az * az);
+		ax /= norm;
+		ay /= norm;
+		az /= norm;
+
+		// Estimated direction of gravity and vector perpendicular to magnetic flux
+		halfvx = q1 * q3 - q0 * q2;
+		halfvy = q0 * q1 + q2 * q3;
+		halfvz = q0 * q0 - 0.5f + q3 * q3;
+
+		// Error is sum of cross product between estimated and measured direction of gravity
+		halfex = (ay * halfvz - az * halfvy);
+		halfey = (az * halfvx - ax * halfvz);
+		halfez = (ax * halfvy - ay * halfvx);
+
+		// Compute and apply integral feedback if enabled
+		if(mpu6050_mahonytwoKiDef > 0.0f) {
+			integralFBx += mpu6050_mahonytwoKiDef * halfex * (1.0f / mpu6050_mahonysampleFreq);	// integral error scaled by Ki
+			integralFBy += mpu6050_mahonytwoKiDef * halfey * (1.0f / mpu6050_mahonysampleFreq);
+			integralFBz += mpu6050_mahonytwoKiDef * halfez * (1.0f / mpu6050_mahonysampleFreq);
+			gx += integralFBx;	// apply integral feedback
+			gy += integralFBy;
+			gz += integralFBz;
+		} else {
+			integralFBx = 0.0f;	// prevent integral windup
+			integralFBy = 0.0f;
+			integralFBz = 0.0f;
+		}
+
+		// Apply proportional feedback
+		gx += mpu6050_mahonytwoKpDef * halfex;
+		gy += mpu6050_mahonytwoKpDef * halfey;
+		gz += mpu6050_mahonytwoKpDef * halfez;
+	}
+
+	// Integrate rate of change of quaternion
+	gx *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));		// pre-multiply common factors
+	gy *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));
+	gz *= (0.5f * (1.0f / mpu6050_mahonysampleFreq));
+	qa = q0;
+	qb = q1;
+	qc = q2;
+	q0 += (-qb * gx - qc * gy - q3 * gz);
+	q1 += (qa * gx + qc * gz - q3 * gy);
+	q2 += (qa * gy - qb * gz + q3 * gx);
+	q3 += (qa * gz + qb * gy - qc * gx);
+
+	// Normalise quaternion
+	norm = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+	q0 /= norm;
+	q1 /= norm;
+	q2 /= norm;
+	q3 /= norm;
 }
 
-static uint8_t MPU6050GyroRead() {
-	uint8_t buf[6];
-	uint8_t c;
+/*
+ * update quaternion
+ */
+void mpu6050_updateQuaternion() {
+	int16_t ax = 0;
+	int16_t ay = 0;
+	int16_t az = 0;
+	int16_t gx = 0;
+	int16_t gy = 0;
+	int16_t gz = 0;
+	double axg = 0;
+	double ayg = 0;
+	double azg = 0;
+	double gxrs = 0;
+	double gyrs = 0;
+	double gzrs = 0;
 
-	c = i2c_readBytes(MPU6050_ADDR, MPU6050_RA_GYRO_XOUT_H, 6, buf);
-	gyroADC[0] = (int16_t)((buf[0] << 8) | buf[1]) ;
-	gyroADC[1] = (int16_t)((buf[2] << 8) | buf[3]) ;
-	gyroADC[2] = (int16_t)((buf[4] << 8) | buf[5]) ;
+	i2c_readBytes(MPU6050_ADDR, MPU6050_RA_ACCEL_XOUT_H, 14, buffer);
+	ax = (int16_t)((buffer[0] << 8) | buffer[1]);
+	ay = (int16_t)((buffer[2] << 8) | buffer[3]);
+	az = (int16_t)((buffer[4] << 8) | buffer[5]);
+	gx = (int16_t)((buffer[8] << 8) | buffer[9]);
+	gy = (int16_t)((buffer[10] << 8) | buffer[11]);
+	gz = (int16_t)((buffer[12] << 8) | buffer[13]);
 
-	return c;
+
+	#if MPU6050_CALIBRATEDACCGYRO == 1
+	axg = (double)(ax-MPU6050_AXOFFSET)/MPU6050_AXGAIN;
+	ayg = (double)(ay-MPU6050_AYOFFSET)/MPU6050_AYGAIN;
+	azg = (double)(az-MPU6050_AZOFFSET)/MPU6050_AZGAIN;
+	gxrs = (double)(gx-MPU6050_GXOFFSET)/MPU6050_GXGAIN*0.01745329; //degree to radians
+	gyrs = (double)(gy-MPU6050_GYOFFSET)/MPU6050_GYGAIN*0.01745329; //degree to radians
+	gzrs = (double)(gz-MPU6050_GZOFFSET)/MPU6050_GZGAIN*0.01745329; //degree to radians
+	#else
+	axg = (double)(ax)/MPU6050_AGAIN;
+	ayg = (double)(ay)/MPU6050_AGAIN;
+	azg = (double)(az)/MPU6050_AGAIN;
+	gxrs = (double)(gx)/MPU6050_GGAIN*0.01745329; //degree to radians
+	gyrs = (double)(gy)/MPU6050_GGAIN*0.01745329; //degree to radians
+	gzrs = (double)(gz)/MPU6050_GGAIN*0.01745329; //degree to radians
+	#endif
+
+    //compute data
+    mpu6050_mahonyUpdate(gxrs, gyrs, gzrs, axg, ayg, azg);
+}
+
+void mpu6050_getQuaternion(double *qw, double *qx, double *qy, double *qz) {
+	*qw = q0;
+	*qx = q1;
+	*qy = q2;
+	*qz = q3;
+}
+
+/*
+ * get euler angles
+ * aerospace sequence, to obtain sensor attitude:
+ * 1. rotate around sensor Z plane by yaw
+ * 2. rotate around sensor Y plane by pitch
+ * 3. rotate around sensor X plane by roll
+ */
+void mpu6050_getRollPitchYaw(double *roll, double *pitch, double *yaw) {
+	*yaw = atan2(2*q1*q2 - 2*q0*q3, 2*q0*q0 + 2*q1*q1 - 1);
+	*pitch = -asin(2*q1*q3 + 2*q0*q2);
+	*roll = atan2(2*q2*q3 - 2*q0*q1, 2*q0*q0 + 2*q3*q3 - 1);
 }
 
 /* stolen from crazepony-firmware-none, i2cdevlib */
@@ -54,7 +165,6 @@ static void MPU6050_initialize() {
 	 */
 	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_PWR_MGMT_1, 0x80);
 	_delay_ms(50);
-
 
 	/*
 	 * 2. Sampling rate
@@ -100,7 +210,7 @@ static void MPU6050_initialize() {
 
 uint8_t MPU6050_getDeviceID() {
 	i2c_readBits(MPU6050_ADDR, MPU6050_RA_WHO_AM_I,
-				 MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, buffer); 
+				 MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, (uint8_t *)buffer); 
 	return buffer[0];
 }
 
@@ -110,12 +220,16 @@ uint8_t MPU6050_testConnection() {
 
 int mpu6050_test() {
 #ifdef MPU6050_TEST
-	int i;
-	float   accRaw[3];      //m/s^2
-	float   gyroRaw[3];     //rad/s
 	tm_t    prev, current;
 	float   delay, delay_sum = 0;
 	int     lcnt = 0;
+	double qw = 1.0f;
+	double qx = 0.0f;
+	double qy = 0.0f;
+	double qz = 0.0f;
+	double roll = 0.0f;
+	double pitch = 0.0f;
+	double yaw = 0.0f;
 
 	init_timer0();
 
@@ -128,40 +242,37 @@ int mpu6050_test() {
 	MPU6050_initialize();
 
 	timer0(&prev);
+
 	/* load */
 	while(1) {
-		MPU6050AccRead();
-		MPU6050GyroRead();
+		/* from avr_lib_mpu6050 */
+		mpu6050_updateQuaternion();
+		mpu6050_getQuaternion(&qw, &qx, &qy, &qz);
+		mpu6050_getRollPitchYaw(&roll, &pitch, &yaw);
+	
 
-		for (i=0; i<3; i++) {
-			accRaw[i]= (float)(accADC[i] * ACC_SCALE * CONSTANTS_ONE_G);
-			gyroRaw[i]=(float)(gyroADC[i] * GYRO_SCALE * M_PI_F)/180.f;      //deg/s
-		}
 
+		/**********************  Profiling **********************/
 		timer0(&current);
 		delay = timer0_cal(&current, &prev);
 		delay_sum += delay;
 		timer0_update(&current, &prev);
-		
-		
 		if (++lcnt == TIMER_LOOP_CNT) {
 			/* avg: delay (ms) */
 			float avg_hz = 1 / (delay_sum * TIMER_LOOP_HZ);
 
 			/* TODO */
-#if 1
-			printf("%4.2f(KHz) Accel(x:%4.3f, y:%4.3f, z:%4.3f) Gyro(x:%4.3f, y:%4.3f z:%4.3f)\r\n",
-				   avg_hz, accRaw[0], accRaw[1], accRaw[2], gyroRaw[0], gyroRaw[1], gyroRaw[2]);
-#else
-
-			printf("%4.2f(KHz)\r\n", avg_hz);
+			printf("%4.3f\t%4.3f\t%4.3f\t%4.3f\t ", qw, qx, qy, qz);
+#if 0
+			printf("%4.2f(KHz) qw:%4.3f qx:%4.3f qy:%4.3f "
+				   "qz:%4.3f Roll:%4.3f Pitch:%4.3f Yaw:%4.3f\r\n",
+				   avg_hz, qw, qx, qy, qz, roll, pitch, yaw);
 #endif
-
-
 			/* TODO -end */
 			delay_sum = 0;
             lcnt = 0;
 		}
+		/**********************  Profiling **********************/
 	}
 
 #endif /* MPU6050_TEST */
