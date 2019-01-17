@@ -1,0 +1,7 @@
+https://kr.mathworks.com/matlabcentral/answers/99067-why-do-i-receive-license-manager-error-9
+
+
+https://kr.mathworks.com/matlabcentral/answers/102845-where-can-i-find-the-activation-key-or-file-installation-key-fik-for-my-license
+
+
+https://xunyunliu.github.io/post/install_matlab/
