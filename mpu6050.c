@@ -220,9 +220,6 @@ uint8_t MPU6050_testConnection() {
 
 int mpu6050_test() {
 #ifdef MPU6050_TEST
-	tm_t    prev, current;
-	float   delay, delay_sum = 0;
-	int     lcnt = 0;
 	double qw = 1.0f;
 	double qx = 0.0f;
 	double qy = 0.0f;
@@ -230,8 +227,15 @@ int mpu6050_test() {
 	double roll = 0.0f;
 	double pitch = 0.0f;
 	double yaw = 0.0f;
+#ifdef _PROFILE_FREG_
+	tm_t    prev, current, tmp;
+	float   delay, delay_sum = 0;
+	int     lcnt = 0;
 
+	DDRB |= 1; 
 	init_timer0();
+	timer0(&prev);
+#endif
 
 	if (!MPU6050_testConnection()) {
 		return -1;
@@ -241,38 +245,43 @@ int mpu6050_test() {
 	/* init */
 	MPU6050_initialize();
 
-	timer0(&prev);
-
 	/* load */
 	while(1) {
+		
 		/* from avr_lib_mpu6050 */
 		mpu6050_updateQuaternion();
 		mpu6050_getQuaternion(&qw, &qx, &qy, &qz);
 		mpu6050_getRollPitchYaw(&roll, &pitch, &yaw);
-	
 
 
+#if defined(_MATLAB_)
+		/**********************  Matlab aerospace  **************/
+		printf("%4.3f\t%4.3f\t%4.3f\t%4.3f\t ", qw, qx, qy, qz);
+#endif	
+#ifdef _PROFILE_FREG_
 		/**********************  Profiling **********************/
+		PORTB = 0x0;
 		timer0(&current);
 		delay = timer0_cal(&current, &prev);
 		delay_sum += delay;
-		timer0_update(&current, &prev);
+		
 		if (++lcnt == TIMER_LOOP_CNT) {
 			/* avg: delay (ms) */
 			float avg_hz = 1 / (delay_sum * TIMER_LOOP_HZ);
 
 			/* TODO */
-			printf("%4.3f\t%4.3f\t%4.3f\t%4.3f\t ", qw, qx, qy, qz);
-#if 0
-			printf("%4.2f(KHz) qw:%4.3f qx:%4.3f qy:%4.3f "
+			printf("%4.3f(KHz) qw:%4.3f qx:%4.3f qy:%4.3f "
 				   "qz:%4.3f Roll:%4.3f Pitch:%4.3f Yaw:%4.3f\r\n",
 				   avg_hz, qw, qx, qy, qz, roll, pitch, yaw);
-#endif
 			/* TODO -end */
 			delay_sum = 0;
             lcnt = 0;
 		}
+		timer0(&tmp);
+		timer0_update(&tmp, &prev);
+		PORTB = 0x1;
 		/**********************  Profiling **********************/
+#endif
 	}
 
 #endif /* MPU6050_TEST */
