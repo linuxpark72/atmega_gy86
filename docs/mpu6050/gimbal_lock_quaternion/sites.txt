@@ -1,0 +1,9 @@
+
+- gimbal lock (korean) using max3d
+
+	https://youtu.be/yxMQKsab5TQ
+
+
+- quaternion
+
+	https://youtu.be/_nJLDmue0h4
