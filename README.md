@@ -72,8 +72,6 @@
 
 ## Todo
 
-  - HMC5883L : delayed
-
   - ms5611   : completed
 
   - MPU6050  : working now 70%
