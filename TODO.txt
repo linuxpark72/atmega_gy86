@@ -1,4 +1,20 @@
 
+
+2019. 1. 18
+
+ 1. what is the meaning of the value of my quanternion ?
+
+    https://blog.naver.com/yuninjae1234/220935189584 ...etc 
+
+
+ 2. how my imu value is reliable and stable ?
+
+ 3. how to stop the continuously changing qz(quanternion z) and yaw.
+
+ 4. why the simulating result of matlab aerospace was so slow ? 
+
+
+
 2019. 1. 17
 
 -> matlab & simulate
