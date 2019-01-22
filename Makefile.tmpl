@@ -11,11 +11,10 @@ DEV_OS              = LINUX
 PROG                = gy86
 
 #CFLAGS             += -DMS5611_TEST
-#CFLAGS             += -DHMC5883_TEST
-#CFLAGS             += -DQMC5883_TEST
-CFLAGS             += -D_PROFILE_FREG_
+CFLAGS             += -DHMC5983_TEST
+#CFLAGS             += -DMPU6050_TEST
+#CFLAGS             += -D_PROFILE_FREG_
 #CFLAGS             += -D_MATLAB_ 
-CFLAGS             += -DMPU6050_TEST
 
 ISP_PROG_TYPE       = stk500
 
@@ -48,4 +47,4 @@ EXTRA_CLEAN_FILES   = *.hex *.bin *.srec
 # $brew install ctags
 #CTAGS               = /usr/local/Cellar/ctags/5.8_1/bin/ctags
 CTAGS               = /usr/bin/ctags
-OBJS                = i2c.o uart.o timer.o main.o ms5611.o mpu6050.o
+OBJS                = i2c.o uart.o timer.o main.o ms5611.o hmc5983.o mpu6050.o 
