@@ -66,7 +66,20 @@
 
 
 
-  - HMC5883L : 40%
+  - HMC5883L : 70%
+
+		 angle(360), x(0), y(65384), z(65275)
+         angle(359), x(1), y(65384), z(65275)
+         angle(359), x(1), y(65384), z(65275)
+         angle(360), x(0), y(65384), z(65275)
+         angle(360), x(0), y(65384), z(65275)
+         angle(360), x(0), y(65384), z(65275) 
+         angle(360), x(0), y(65384), z(65275) 
+         angle(360), x(0), y(65384), z(65275)
+         angle(360), x(0), y(65384), z(65276)
+         angle(360), x(0), y(65383), z(65275)
+         angle(360), x(0), y(65383), z(65275)
+         angle(360), x(0), y(65383), z(65275) 
 
 
 
@@ -76,7 +89,9 @@
 
   - MPU6050  : working now 70%
 
-  - HMC5883L : delayed
+  - HMC5883L : 
+              1. reset
+			  2. check value and its validity
 
   - drone    : maybe from April of 2019.
 
