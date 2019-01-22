@@ -70,3 +70,8 @@
 7. opengl
 
     https://www.youtube.com/watch?v=qXn_iriolgg
+
+
+8. 8 open source drone projects
+
+	https://opensource.com/article/18/2/drone-projects
