@@ -14,259 +14,151 @@
 #include "i2c.h"
 #include "uart.h"
 #include "hmc5983.h"
-#define PI  3.14159265359
-#define Declination -0.00669
-#if 0
-static unsigned int hmc5883_i2c_send(char cmd) {
-	return i2c_send(HMC5883_ADDR, cmd);
+
+volatile uint16_t comp[3];
+volatile uint32_t angle;
+
+uint8_t hmc5983_readreg(uint8_t reg) {
+	uint8_t data;
+
+	i2c_start(HMC5983_ADDR + I2C_WRITE);
+	i2c_write(reg);
+
+	i2c_rep_start(HMC5983_READ);
+	data = i2c_readNak();
+	i2c_stop();
+	return data;
 }
 
-uint8_t hmcreadRegister(uint8_t regAddr) {
-  uint8_t data;
+void hmc5983_writereg(uint8_t reg, uint8_t data) {
 
-  //hmc5883_i2c_send(HMC5883_READ);
-
-  //request register
-  i2c_start(HMC5883_ADDR + i2c_READ);
-  i2c_write(regAddr);
-  i2c_stop();
-  _delay_us(10);
-  //read data
-  i2c_start(HMC5883_ADDR + i2c_READ);
-  data = i2c_readNak();
-  i2c_stop();
-  return data;
+	i2c_start(HMC5983_ADDR + I2C_WRITE);
+	i2c_write(reg);
+	i2c_write((uint8_t) data);
+	i2c_stop();
 }
 
-void hmcwriteRegister(uint8_t regAddr, uint8_t data) {
-  //i2c_writeByte(HMC5883_ADDR, regAddr, data);
+uint16_t hmc5983_get_axis(uint8_t axis) {
+	uint8_t data[2];
+	uint16_t value;
 
-  //hmc5883_i2c_send(HMC5883_WRITE);
+	switch(axis)
+	{
 
-  //write data
-  i2c_start(HMC5883_ADDR + i2c_WRITE);
-  //i2c_write(HMC5883_WRITE); //reg
-  i2c_write(regAddr); //reg
-  i2c_write((uint8_t) data);
-  i2c_stop();
+		case X_AXIS:
+			data[0] = hmc5983_readreg(HMC5983_REG_DX_H);
+			data[1] = hmc5983_readreg(HMC5983_REG_DX_L);
+			value = (data[0] << 8) | data[1];
+			break;
+
+		case Y_AXIS:
+			data[0] = hmc5983_readreg(HMC5983_REG_DY_H);
+			data[1] = hmc5983_readreg(HMC5983_REG_DY_L);
+			value = (data[0] << 8) | data[1];
+			break;
+
+		case Z_AXIS:
+			data[0] = hmc5983_readreg(HMC5983_REG_DZ_H);
+			data[1] = hmc5983_readreg(HMC5983_REG_DZ_L);
+			value = (data[0] << 8) | data[1];
+			break;
+	}
+
+	return value;
 }
 
-uint16_t hmcGetAxisComponent(uint8_t axis) {
-  uint8_t data[2];
-  uint16_t value;
-
-  switch(axis)
-  {
-
-	case X_AXIS:
-	  data[0] = hmcreadRegister(HMC5883_REG_DATAX_H);
-	  data[1] = hmcreadRegister(HMC5883_REG_DATAX_L);
-	  value = (data[0] << 8) | data[1];
-	  break;
-
-	case Y_AXIS:
-	  data[0] = hmcreadRegister(HMC5883_REG_DATAY_H);
-	  data[1] = hmcreadRegister(HMC5883_REG_DATAY_L);
-	  value = (data[0] << 8) | data[1];
-	  break;
-
-	case Z_AXIS:
-	  data[0] = hmcreadRegister(HMC5883_REG_DATAZ_H);
-	  data[1] = hmcreadRegister(HMC5883_REG_DATAZ_L);
-	  value = (data[0] << 8) | data[1];
-	  break;
-  }
-
-  return value;
-}
-
-uint32_t hmcGetMagneticFieldStrength(uint8_t axis) {
+uint32_t hmc5983_get_field(uint8_t axis) {
   uint16_t axisVal;
   uint32_t fieldStrength;
   
-  // read axis component
-  axisVal = hmcGetAxisComponent(axis);
-  // multiply raw value by scaling factor
+  axisVal = hmc5983_get_axis(axis);
   fieldStrength = axisVal * SCALING_FACTOR;
   return fieldStrength;
 }
 
-uint32_t hmcGetHeadingAngle(void) {
-  uint16_t comp[3];
-  uint32_t angle;
+uint32_t hmc5983_get_headangle(void) {
 
-  // read X axis component
-  comp[0] = hmcGetAxisComponent(X_AXIS);
-  // read Y axis component
-  comp[1] = hmcGetAxisComponent(Y_AXIS);
-  // read Z axis component
-  comp[2] = hmcGetAxisComponent(Z_AXIS);
-  // calculate heading angle.Function atan2 defined in math.h
+  /* read X axis component */
+  comp[0] = hmc5983_get_axis(X_AXIS);
+  /* read Y axis component */
+  comp[1] = hmc5983_get_axis(Y_AXIS);
+  /* read Z axis component */
+  comp[2] = hmc5983_get_axis(Z_AXIS);
+  /* calculate heading angle.Function atan2 defined in math.h */
   angle = (((atan2((int16_t)comp[0] ,(int16_t)comp[1])) * 180) / PI) + 180;
   
   return angle;
 }
 
 
-void hmcInit() {
+void hmc5983_init() {
   //uint8_t cfgA_data, cfgB_data;
 
   //cfgA_data = HMC_UPDATE_RATE | HMC_MODE_NORMAL | HMC_SAMPLE_RATE;
   //cfgB_data = HMC_GAIN_1090;
-  
   // set update rate, measurement mode and sample rate
-  //hmcwriteRegister(HMC5883_REG_CONFIG_A, cfgA_data);
-  hmcwriteRegister(HMC5883_REG_CONFIG_A, 0x70);
+  //hmc5983_writereg(HMC5983_REG_CONFIG_A, cfgA_data);
+  hmc5983_writereg(HMC5983_REG_CONFIG_A, 0x70);
   // set device gain
-  //hmcwriteRegister(HMC5883_REG_CONFIG_B, cfgB_data);
-  hmcwriteRegister(HMC5883_REG_CONFIG_B, 0xA0);
-  // set operating mode of the device
-  //hmcwriteRegister(HMC5883_REG_MODE, HMC_MODE);
-  //hmcwriteRegister(HMC5883_REG_MODE, 0x01);
+  //hmc5983_writereg(HMC5983_REG_CONFIG_B, cfgB_data);
+  hmc5983_writereg(HMC5983_REG_CONFIG_B, 0xA0);
+  
+  /* set operating mode of the device
+   * HS & single mode
+   */
+  hmc5983_writereg(HMC5983_REG_MODE, 0x81);
 }
 
-void hmcVerify() {
-	uint8_t data;
-
-	printf("\r\n");
-	data = hmcreadRegister(HMC5883_REG_IA);
-	printf("IA: 0x%x\r\n", data);
-	data = hmcreadRegister(HMC5883_REG_IB);
-	printf("IB: 0x%x\r\n", data);
-	data = hmcreadRegister(HMC5883_REG_IC);
-	printf("IC: 0x%x\r\n", data);
-	data = hmcreadRegister(HMC5883_REG_SR);
-	printf("SR: %x\r\n", data);
-}
-
-int hmc_isready(void) {
+int hmc5983_isready(void) {
 	uint8_t data;
 	
-	data = hmcreadRegister(HMC5883_REG_SR);
+	data = hmc5983_readreg(HMC5983_REG_SR);
 	return data & 0x01;
 }
-#endif
 
-static int Magneto_GetHeading()
-{
-	int x, y, z;
-	double Heading;
-
-	i2c_start(0x1E);
-	i2c_write(0x03);
-	i2c_rep_start(0x1F);
-	/* read 16 bit x,y,z value (2?s complement form) */
-	x = (((int)i2c_readAck()<<8) | (int)i2c_readAck());
-	z = (((int)i2c_readAck()<<8) | (int)i2c_readAck());
-	y = (((int)i2c_readAck()<<8) | (int)i2c_readNak());
-	i2c_stop();
-	printf("x(%u), y(%u), z(%u)\r\n", x, y, z);
-	Heading = atan2((double)y,(double)x) + Declination;
-	if (Heading>2*PI)
-		Heading = Heading - 2*PI;
-	if (Heading<0) 
-		Heading = Heading + 2*PI;
-	return (Heading* 180 / PI);
-}
-
-static void Magneto_init()                    
-{
-    i2c_start(0x3C);
-    i2c_write(0x00);
-    i2c_write(0x70);
-    i2c_write(0xA0);
-    i2c_write(0x01);
-    i2c_stop();
-}
-
-static void check() {
-	char a, b, c;
+int hmc5983_id_check() {
+	uint8_t a, b, c;
 	a = b = c = 0;
 	
-	i2c_start(0x3C);
-	i2c_write(0x0A);
-	i2c_rep_start(0x3D);
+	i2c_start(HMC5983_ADDR);
+	i2c_write(HMC5983_REG_IA);
+	i2c_rep_start(HMC5983_READ);
 	a = i2c_readAck();
 	b = i2c_readAck();
 	c = i2c_readNak();
 	i2c_stop();
-	printf("%c %c %c\r\n", a, b, c);
-}
-#if 0
-int hmc5883l_test(void) {
-#ifdef HMC5883_TEST
-	int ret;
+	printf("ID: 0x48 ?= 0x%x, 0x34 ?= 0x%x 0x33 ?= 0x%x\r\n", a, b, c);
 
-	printf("\r\n");
-	printf("testing...\r\n");
-
-	Magneto_init ();
-	_delay_ms(6);
-	printf("done\r\n");
-	check();
-	printf("v done\r\n");
-	while (1) {
-		Magneto_GetHeading();
-		//Magneto_init ();
-		//check();
-		_delay_ms(200);
+	if (a != 0x48 || b != 0x34 || c != 0x33) {
+		return -1;
 	}
-#endif /* HMC5883_TEST */
-	return 1;
+
+	return 0;
 }
-#endif
-#define I2C_SCL PD0
-#define I2C_SDA PD1
 
 int hmc5983_test(void) {
 #ifdef HMC5983_TEST
-	uint8_t ret;
 
-	printf("\r\n");
-	printf("testing...\r\n");
-	TWCR = (1 << TWEN) | (1 << TWEA);
-		
-	_delay_ms(10);
-	check();
-	return 1;
-retry:
-	ret = i2c_start(0x3C);
-	if (ret) {
-		printf("i2c_start error -> 0x%x\r\n", ret);
-		if (ret == 0x20) {
-			i2c_stop();
-			_delay_ms(600);
-			goto retry;
-		}
+	printf("\r\nhmc5983 testing...\r\n");
+
+	if (hmc5983_id_check() < 0) {
+		printf("hmc5983: connection failed! \r\n");
+		return -1;
+	} else {
+		printf("hmc5983: check done! \r\n");
 	}
-    ret = i2c_write(0x00);
-	if (ret) {
-		printf("i2c_write error 0x%x\r\n", ret);
-		return 1;
-	}
-    ret = i2c_write(0x70);
-	if (ret) {
-		printf("i2c_write error 0x%x\r\n", ret);
-		return 1;
-	}
-    ret = i2c_write(0xA0);
-	if (ret) {
-		printf("i2c_write error 0x%x\r\n", ret);
-		return 1;
-	}
-    i2c_stop();
-		
-	printf("init success \r\n");
+
+	hmc5983_init();
 	_delay_ms(1000);
-	for(;;) {
-		i2c_start(0x3C);
-		i2c_write(0x02);
-		i2c_write(0x01);
-		i2c_stop();
-		_delay_ms(6);
-		Magneto_GetHeading();
-		_delay_ms(200);
-	}
+	while(1) {
+		while(!hmc5983_isready());
+
+		hmc5983_get_headangle();
+		printf("angle(%lu), x(%u), y(%u), z(%u)\r\n", 
+			   angle, comp[X_AXIS-1], comp[Y_AXIS-1], comp[Z_AXIS-1]);
+
+	} 
+
 	return 0;
-#endif /* HMC5883_TEST */ 
+#endif /* HMC5983_TEST */ 
 }

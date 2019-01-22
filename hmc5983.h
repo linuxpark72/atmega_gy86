@@ -54,6 +54,9 @@
 #define PI  3.14159265359
 #define Declination -0.00669
 
+extern int hmc5983_id_check(void);
+extern void hmc5983_init(void);
+int hmc5983_isready(void);
 extern int hmc5983_test(void);
 
 #endif /* _HMC5983_ */
