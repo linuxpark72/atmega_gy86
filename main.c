@@ -12,6 +12,7 @@
 #include "i2c.h"
 #include "uart.h"
 #include "ms5611.h"
+#include "hmc5983.h"
 #include "mpu6050.h"
 
 int main(void) {
@@ -21,6 +22,7 @@ int main(void) {
 	uart_init();
 
 	ms5611_test();
+	hmc5983_test();
 	mpu6050_test();
 
 	return 0;
