@@ -49,7 +49,7 @@
 #define CONSTANTS_AIR_GAS_CONST                 287.1f          /* J/(kg * K)   */
 #define CONSTANTS_ABSOLUTE_NULL_CELSIUS         -273.15f        /* 癈           */
 #define CONSTANTS_RADIUS_OF_EARTH               6371000         /* meters (m)   */
-
+#define DEGREE  ((float)180/M_PI_F)
 //constant g // tobe fixed to 8g. but IMU need to correct at the same time
 #define SENSOR_MAX_G 8.0f
 #define SENSOR_MAX_W 2000.0f    //deg/s

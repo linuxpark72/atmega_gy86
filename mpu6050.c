@@ -251,8 +251,9 @@ int mpu6050_test() {
 		/* from avr_lib_mpu6050 */
 		mpu6050_updateQuaternion();
 		mpu6050_getQuaternion(&qw, &qx, &qy, &qz);
+#if !defined(_MATLAB_)
 		mpu6050_getRollPitchYaw(&roll, &pitch, &yaw);
-
+#endif
 
 #if defined(_MATLAB_)
 		/**********************  Matlab aerospace  **************/
@@ -272,7 +273,7 @@ int mpu6050_test() {
 			/* TODO */
 			printf("%4.3f(KHz) qw:%4.3f qx:%4.3f qy:%4.3f "
 				   "qz:%4.3f Roll:%4.3f Pitch:%4.3f Yaw:%4.3f\r\n",
-				   avg_hz, qw, qx, qy, qz, roll, pitch, yaw);
+				   avg_hz, qw, qx, qy, qz, roll * DEGREE, pitch * DEGREE, yaw * DEGREE);
 			/* TODO -end */
 			delay_sum = 0;
             lcnt = 0;
