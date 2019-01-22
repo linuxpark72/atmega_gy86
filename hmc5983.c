@@ -106,7 +106,7 @@ void hmc5983_init() {
   /* set operating mode of the device
    * HS & single mode
    */
-  hmc5983_writereg(HMC5983_REG_MODE, 0x81);
+  hmc5983_writereg(HMC5983_REG_MODE, 0x80);
 }
 
 int hmc5983_isready(void) {
@@ -152,6 +152,7 @@ int hmc5983_test(void) {
 	_delay_ms(1000);
 	while(1) {
 		while(!hmc5983_isready());
+		//_delay_ms(7);
 
 		hmc5983_get_headangle();
 		printf("angle(%lu), x(%u), y(%u), z(%u)\r\n", 
