@@ -25,7 +25,7 @@ volatile float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;
 /*
  * Mahony update function (for 6DOF)
  */
-void mpu6050_mahonyUpdate(float gx, float gy, float gz, float ax, float ay, float az) {
+static void mpu6050_mahonyUpdate(float gx, float gy, float gz, float ax, float ay, float az) {
 	float norm;
 	float halfvx, halfvy, halfvz;
 	float halfex, halfey, halfez;
@@ -157,7 +157,7 @@ void mpu6050_getRollPitchYaw(double *roll, double *pitch, double *yaw) {
 }
 
 /* stolen from crazepony-firmware-none, i2cdevlib */
-static void MPU6050_initialize() {
+void MPU6050_initialize() {
 
 	/* 
 	 * 1. Reset

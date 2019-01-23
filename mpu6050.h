@@ -78,6 +78,9 @@
 #define mpu6050_mahonytwoKiDef (2.0f * 0.1f) // 2 * integral gain
 
 /* end from avr_lib_mpu6050 */
-
+extern void mpu6050_updateQuaternion();
+extern void mpu6050_getQuaternion(double *qw, double *qx, double *qy, double *qz);
+extern void mpu6050_getRollPitchYaw(double *roll, double *pitch, double *yaw);
+extern void MPU6050_initialize(); 
 extern int mpu6050_test();
 #endif /* _MPU6050_ */
