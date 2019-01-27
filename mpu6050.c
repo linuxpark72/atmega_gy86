@@ -240,7 +240,7 @@ int mpu6050_test() {
 	if (!mpu6050_test_conn()) {
 		return -1;
 	}
-	printf("\r\n\r\nmpu6050(0x%x) connected!\r\n", MPU6050_getDeviceID() << 1);
+	printf("\r\n\r\nmpu6050(0x%x) connected!\r\n", mpu6050_getid() << 1);
 
 	/* init */
 	mpu6050_init();
