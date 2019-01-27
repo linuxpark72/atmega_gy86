@@ -13,10 +13,10 @@
 #include <stdlib.h>
 #include "i2c.h"
 #include "uart.h"
-#include "timer.h"
 #include "mpu6050.h"
-
-#define MPU6050_ADDR (0x68 <<1) 
+#ifdef _PROFILE_FREG_
+#include "timer.h"
+#endif
 
 volatile uint8_t buffer[14];
 /* from avr_lib_mpu6050 */
@@ -157,7 +157,7 @@ void mpu6050_getRollPitchYaw(double *roll, double *pitch, double *yaw) {
 }
 
 /* stolen from crazepony-firmware-none, i2cdevlib */
-void MPU6050_initialize() {
+void mpu6050_init() {
 
 	/* 
 	 * 1. Reset
@@ -208,14 +208,14 @@ void MPU6050_initialize() {
 	i2c_writeByte(MPU6050_ADDR, MPU6050_RA_ACCEL_CONFIG, 2 << 3);
 }
 
-uint8_t MPU6050_getDeviceID() {
+uint8_t mpu6050_getid() {
 	i2c_readBits(MPU6050_ADDR, MPU6050_RA_WHO_AM_I,
 				 MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, (uint8_t *)buffer); 
 	return buffer[0];
 }
 
-uint8_t MPU6050_testConnection() {
-	return MPU6050_getDeviceID() == 0x34;
+uint8_t mpu6050_test_conn() {
+	return mpu6050_getid() == 0x34;
 }
 
 int mpu6050_test() {
@@ -232,18 +232,18 @@ int mpu6050_test() {
 	float   delay, delay_sum = 0;
 	int     lcnt = 0;
 
-	DDRB |= 1; 
+	DDRB |= 0x01; 
 	init_timer0();
 	timer0(&prev);
 #endif
 
-	if (!MPU6050_testConnection()) {
+	if (!mpu6050_test_conn()) {
 		return -1;
 	}
 	printf("\r\n\r\nmpu6050(0x%x) connected!\r\n", MPU6050_getDeviceID() << 1);
 
 	/* init */
-	MPU6050_initialize();
+	mpu6050_init();
 
 	/* load */
 	while(1) {

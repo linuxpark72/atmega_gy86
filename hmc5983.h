@@ -32,9 +32,9 @@
 
 // HMC5983 configuration
 // 3 dimensional axis
-#define X_AXIS  1
-#define Y_AXIS  2
-#define Z_AXIS  3
+#define X_AXIS  0
+#define Y_AXIS  1
+#define Z_AXIS  2
 
 // HMC5983 configuration
 // update rate = 75 Hz
@@ -54,9 +54,14 @@
 #define PI  3.14159265359
 #define Declination -0.00669
 
+extern uint8_t hmc5983_readreg(uint8_t reg);
+extern void hmc5983_writereg(uint8_t reg, uint8_t data); 
+extern uint16_t hmc5983_get_axis(uint8_t axis);
+extern uint32_t hmc5983_get_field(uint8_t axis);
+extern uint32_t hmc5983_get_headangle(void);
+extern int hmc5983_isready(void);
 extern int hmc5983_id_check(void);
 extern void hmc5983_init(void);
-int hmc5983_isready(void);
 extern int hmc5983_test(void);
 
 #endif /* _HMC5983_ */

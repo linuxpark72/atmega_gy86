@@ -8,7 +8,7 @@
 #ifndef _MPU6050_
 #define _MPU6050_
 
-
+#define MPU6050_ADDR (0x68 <<1)
 #define MPU6050_RA_CONFIG           0x1A
 #define MPU6050_RA_GYRO_CONFIG      0x1B
 #define MPU6050_GCONFIG_FS_SEL_BIT      4
@@ -81,6 +81,8 @@
 extern void mpu6050_updateQuaternion();
 extern void mpu6050_getQuaternion(double *qw, double *qx, double *qy, double *qz);
 extern void mpu6050_getRollPitchYaw(double *roll, double *pitch, double *yaw);
-extern void MPU6050_initialize(); 
+extern uint8_t mpu6050_getid();
+extern uint8_t mpu6050_test_conn(); 
+extern void mpu6050_init();
 extern int mpu6050_test();
 #endif /* _MPU6050_ */

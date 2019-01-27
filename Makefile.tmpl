@@ -12,8 +12,8 @@ PROG                = gy86
 
 #CFLAGS             += -DMS5611_TEST
 CFLAGS             += -DHMC5983_TEST
-#CFLAGS             += -DMPU6050_TEST
-#CFLAGS             += -D_PROFILE_FREG_
+#CFLAGS             += -DMPU6050_TEST 
+CFLAGS             += -D_PROFILE_FREG_
 #CFLAGS             += -D_MATLAB_ 
 
 ISP_PROG_TYPE       = stk500
@@ -34,8 +34,8 @@ CC                  = ${CROSS_COMPILER}/avr-gcc
 OBJCOPY             = ${CROSS_COMPILER}/avr-objcopy
 OBJDUMP             = ${CROSS_COMPILER}/avr-objdump
 LOADER              = ${CROSS_COMPILER}/avrdude
+
 INC                 = -I.
-# CFLAGS CFLAGS     = -g -Wall -gdwarf-2
 CFLAGS             += -std=gnu99 -Wl,-u,vfprintf -Wall
 CFLAGS             += $(INC)
 CFLAGS             += -O1 -D__OPTIMIZE__ 
