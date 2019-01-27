@@ -36,6 +36,7 @@
 #define Y_AXIS  1
 #define Z_AXIS  2
 
+#ifdef TESTING
 // HMC5983 configuration
 // update rate = 75 Hz
 #define HMC_UPDATE_RATE  0x18
@@ -50,17 +51,23 @@
 #define HMC_MODE  0x00
 // scaling factor for gain = 1090 LSb/Gauss
 #define SCALING_FACTOR  0.73
-// PI value
-#define PI  3.14159265359
-#define Declination -0.00669
-
-extern uint8_t hmc5983_readreg(uint8_t reg);
-extern void hmc5983_writereg(uint8_t reg, uint8_t data); 
 extern uint16_t hmc5983_get_axis(uint8_t axis);
 extern uint32_t hmc5983_get_field(uint8_t axis);
 extern uint32_t hmc5983_get_headangle(void);
+#endif
+
+#define PI	3.14159265359	/* Define Pi value */
+
+/* Define declination of location from where measurement going to be done. 
+ * e.g. here we have added declination from location Pune city, 
+ * India. we can get it from http://www.magnetic-declination.com */
+#define Declination -0.00827 /* seoul, korea */
+
+extern uint8_t hmc5983_readreg(uint8_t reg);
+extern void hmc5983_writereg(uint8_t reg, uint8_t data); 
 extern int hmc5983_isready(void);
 extern int hmc5983_id_check(void);
+extern int hmc5983_get_headangle(int *angle, int *x, int *z, int *y);
 extern void hmc5983_init(void);
 extern int hmc5983_test(void);
 

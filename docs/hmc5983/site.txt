@@ -1,2 +1,9 @@
 
 https://www.electronicwings.com/avr-atmega/magnetometer-hmc5883l-interfacing-with-atmega16
+
+provide Magnetic declination at each area
+https://en.wikipedia.org/wiki/Magnetic_declination
+
+what is magnetic sensor and its appliance.
+https://github.com/FabLabSeoul/WingProject/wiki/HMC5883L
+

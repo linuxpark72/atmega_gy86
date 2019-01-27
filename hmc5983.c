@@ -10,19 +10,13 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <math.h>
-#include <stdlib.h>
 #include "i2c.h"
 #include "uart.h"
 #include "hmc5983.h"
-#include "mpu6050.h"
+//#include "mpu6050.h"
 #ifdef _PROFILE_FREG_
 #include "timer.h"
 #endif
-
-#define SELF_TEST
-
-volatile uint16_t comp[Z_AXIS+1];
-volatile uint32_t angle;
 
 uint8_t hmc5983_readreg(uint8_t reg) {
 	uint8_t data;
@@ -44,49 +38,26 @@ void hmc5983_writereg(uint8_t reg, uint8_t data) {
 	i2c_stop();
 }
 
-uint16_t hmc5983_get_axis(uint8_t axis) {
-	uint8_t data[2];
-	uint16_t value = 0;
+int hmc5983_get_headangle(int *angle, int *x, int *z, int *y) {
+	double Heading;
 
-	switch(axis) {
-		case X_AXIS:
-			data[0] = hmc5983_readreg(HMC5983_REG_DX_H);
-			data[1] = hmc5983_readreg(HMC5983_REG_DX_L);
-			value = (data[0] << 8) | data[1];
-			break;
-		case Y_AXIS:
-			data[0] = hmc5983_readreg(HMC5983_REG_DY_H);
-			data[1] = hmc5983_readreg(HMC5983_REG_DY_L);
-			value = (data[0] << 8) | data[1];
-			break;
-		case Z_AXIS:
-			data[0] = hmc5983_readreg(HMC5983_REG_DZ_H);
-			data[1] = hmc5983_readreg(HMC5983_REG_DZ_L);
-			value = (data[0] << 8) | data[1];
-			break;
-	}
-	return value;
-}
+	i2c_start(HMC5983_ADDR + I2C_WRITE);
+	i2c_write(HMC5983_REG_DX_H);
+	i2c_rep_start(HMC5983_READ);
+	/* Read 16 bit x,y,z value (2's complement form) */
+	*x = (((int)i2c_readAck()<<8) | (int)i2c_readAck());
+	*z = (((int)i2c_readAck()<<8) | (int)i2c_readAck());
+	*y = (((int)i2c_readAck()<<8) | (int)i2c_readNak());
+	i2c_stop();
 
-uint32_t hmc5983_get_field(uint8_t axis) {
-	uint16_t axisVal;
-	uint32_t fieldStrength;
+	Heading = atan2((double)*y, (double)*x) + Declination;
+	if (Heading>2*PI)	/* Due to declination check for >360 degree */
+		Heading = Heading - 2*PI;
+	if (Heading<0)		/* Check for sign */
+		Heading = Heading + 2*PI;
+	*angle = (Heading* 180 / PI);/* Convert into angle and return */
 
-	axisVal = hmc5983_get_axis(axis);
-	fieldStrength = axisVal * SCALING_FACTOR;
-	return fieldStrength;
-}
-
-uint32_t hmc5983_get_headangle(void) {
-	/* read X axis component */
-	comp[X_AXIS] = hmc5983_get_axis(X_AXIS);
-	/* read Y axis component */
-	comp[Y_AXIS] = hmc5983_get_axis(Y_AXIS);
-	/* read Z axis component */
-	comp[Z_AXIS] = hmc5983_get_axis(Z_AXIS);
-	/* calculate heading angle.Function atan2 defined in math.h */
-	angle = (((atan2((int16_t)comp[X_AXIS] ,(int16_t)comp[Y_AXIS])) * 180) / PI) + 180;
-	return angle;
+	return 0;
 }
 
 void hmc5983_init() {
@@ -95,25 +66,16 @@ void hmc5983_init() {
 	/* set device gain */
 	hmc5983_writereg(HMC5983_REG_CONFIG_B, 0xA0);
 	/* set operating mode */
-	hmc5983_writereg(HMC5983_REG_MODE, 0x0);
-}
-
-void hmc5983_selftest_init() {
-	/* #sample, output rate, measurement mode */
-	hmc5983_writereg(HMC5983_REG_CONFIG_A, 0x71);
-	/* set device gain */
-	hmc5983_writereg(HMC5983_REG_CONFIG_B, 0xA0);
-	/* set operating mode */
 	hmc5983_writereg(HMC5983_REG_MODE, 0x00);
 }
-
+#if 0
 int hmc5983_isready(void) {
 	uint8_t data;
 	
 	data = hmc5983_readreg(HMC5983_REG_SR);
 	return data & 0x01;
 }
-
+#endif
 int hmc5983_id_check() {
 	uint8_t a, b, c;
 	a = b = c = 0;
@@ -136,6 +98,10 @@ int hmc5983_id_check() {
 
 int hmc5983_test(void) {
 #ifdef HMC5983_TEST
+	int x = 0;
+	int z = 0;
+	int y = 0;
+	int angle = 0;
 #ifdef _PROFILE_FREG_
 	tm_t    prev, current, tmp;
 	float   delay, delay_sum = 0;
@@ -148,12 +114,9 @@ int hmc5983_test(void) {
 	printf("\r\nhmc5983 testing...\r\n");
 
 	/* todo: delete me ? */
-	mpu6050_init();
-#ifdef SELF_TEST
-	hmc5983_selftest_init();
-#else
+	//mpu6050_init();
 	hmc5983_init();
-#endif
+	
 	if (hmc5983_id_check() < 0) {
 		printf("hmc5983: connection failed! \r\n");
 		return -1;
@@ -164,7 +127,7 @@ int hmc5983_test(void) {
 	_delay_ms(6);
 	while(1) {
 		//while(!hmc5983_isready());
-		hmc5983_get_headangle();
+		hmc5983_get_headangle(&angle, &x, &z, &y);
 
 #ifdef _PROFILE_FREG_
 		/**********************  Profiling **********************/
@@ -178,8 +141,7 @@ int hmc5983_test(void) {
 			float avg_hz = 1 / (delay_sum * TIMER_LOOP_HZ);
 
 			/* TODO */
-			printf("%4.3f(KHz) angle(%d), x(%d), y(%d), z(%d)\r\n",
-				   avg_hz, angle, comp[X_AXIS], comp[Y_AXIS], comp[Z_AXIS]);
+			printf("%4.3f(KHz) angle(%d), x(%d), y(%d), z(%d)\r\n", avg_hz, angle, x, y, z);
 			/* TODO -end */
 			delay_sum = 0;
 			lcnt = 0;
@@ -189,7 +151,7 @@ int hmc5983_test(void) {
 		PORTB = 0x1;
 		/**********************  Profiling **********************/
 #endif
-		_delay_ms(67);
+		//_delay_ms(67);
 	} 
 
 	return 0;
