@@ -26,7 +26,7 @@
 ## current status of this project
 
 
-  - ms5611   : completed 
+  - ms5611   : 80 %
   
 	      * 1'st, 2'st compensation and the result looks like below
 
@@ -44,7 +44,7 @@
 		  2'st compensation:   Temperature(21.3305), Press(1014.5284 mbar)
 
 
-  - MPU6050  : 70%
+  - MPU6050  : 80 % ?
 
 		  mpu6050(0x68) connected!
 		  0.421(KHz) qw:0.998 qx:0.002 qy:-0.022 qz:-0.055 Roll:-0.001 Pitch:0.043 Yaw:0.111
@@ -66,35 +66,27 @@
 
 
 
-  - HMC5883L : 70%
+  - HMC5883L : 80 % ?
 
-		 angle(360), x(0), y(65384), z(65275)
-         angle(359), x(1), y(65384), z(65275)
-         angle(359), x(1), y(65384), z(65275)
-         angle(360), x(0), y(65384), z(65275)
-         angle(360), x(0), y(65384), z(65275)
-         angle(360), x(0), y(65384), z(65275) 
-         angle(360), x(0), y(65384), z(65275) 
-         angle(360), x(0), y(65384), z(65275)
-         angle(360), x(0), y(65384), z(65276)
-         angle(360), x(0), y(65383), z(65275)
-         angle(360), x(0), y(65383), z(65275)
-         angle(360), x(0), y(65383), z(65275) 
-
+          1.628(KHz) angle(0, 0), x(208, 208), y(5, 5), z(65308, -228)
+          1.628(KHz) angle(0, 0), x(208, 208), y(5, 5), z(65308, -228)
+          2.441(KHz) angle(0, 0), x(209, 209), y(5, 5), z(65309, -227)
+          1.628(KHz) angle(0, 0), x(208, 208), y(5, 5), z(65308, -228)
+          1.628(KHz) angle(0, 0), x(208, 208), y(4, 4), z(65308, -228)
+          1.628(KHz) angle(0, 0), x(209, 209), y(5, 5), z(65309, -227)
+          1.221(KHz) angle(0, 0), x(208, 208), y(5, 5), z(65309, -227)
+          2.441(KHz) angle(0, 0), x(208, 208), y(5, 5), z(65309, -227)
+          2.441(KHz) angle(0, 0), x(208, 208), y(4, 4), z(65308, -228)
+          1.628(KHz) angle(0, 0), x(209, 209), y(5, 5), z(65308, -228)
 
 
 ## Todo
 
-  - ms5611   : completed
-
-  - MPU6050  : working now 70%
-
-  - HMC5883L : 
-              1. reset
-			  2. check value and its validity
-
-  - drone    : maybe from April of 2019.
-
+   - check this paper 13844.pdf first and study about characteristics of AHRS.
+     1. check how much the values above have error or difference from their original value.
+	 2. check how many methods are existing to make the errors small.
+	 3. how i will do experiment with some tools i have not met yet.
+	 etc .. 
 
 
 ## previous my quadcopter
