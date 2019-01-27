@@ -68,14 +68,14 @@ void hmc5983_init() {
 	/* set operating mode */
 	hmc5983_writereg(HMC5983_REG_MODE, 0x00);
 }
-#if 0
+
 int hmc5983_isready(void) {
 	uint8_t data;
 	
 	data = hmc5983_readreg(HMC5983_REG_SR);
 	return data & 0x01;
 }
-#endif
+
 int hmc5983_id_check() {
 	uint8_t a, b, c;
 	a = b = c = 0;
@@ -124,9 +124,9 @@ int hmc5983_test(void) {
 		printf("hmc5983: check done! \r\n");
 	}
 
-	_delay_ms(6);
+	_delay_ms(1000);
 	while(1) {
-		//while(!hmc5983_isready());
+		while(!hmc5983_isready());
 		hmc5983_get_headangle(&angle, &x, &z, &y);
 
 #ifdef _PROFILE_FREG_
@@ -141,7 +141,8 @@ int hmc5983_test(void) {
 			float avg_hz = 1 / (delay_sum * TIMER_LOOP_HZ);
 
 			/* TODO */
-			printf("%4.3f(KHz) angle(%d), x(%d), y(%d), z(%d)\r\n", avg_hz, angle, x, y, z);
+			printf("%4.3f(KHz) angle(%u, %d), x(%u, %d), y(%u, %d), z(%u, %d)\r\n", 
+				   avg_hz, angle, angle, x, x, y, y, z, z);
 			/* TODO -end */
 			delay_sum = 0;
 			lcnt = 0;
@@ -151,7 +152,6 @@ int hmc5983_test(void) {
 		PORTB = 0x1;
 		/**********************  Profiling **********************/
 #endif
-		//_delay_ms(67);
 	} 
 
 	return 0;
